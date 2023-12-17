@@ -24,8 +24,8 @@
 
 #### Project Statement:
 
-- HyperOS: Hook method source: @ Yuzhi's Children's Paper (@ zjw2017)&yife&pedroz
-- Miui: Hook Method Source: @ Huanchen HChen (@ HChenX)
+- HyperOS: Hook method source: @柚稚的孩纸([@zjw2017](https://github.com/zjw2017)) & yife & pedroz
+- Miui: Hook Method Source: @焕晨HChen([@HChenX](https://github.com/HChenX))
 
 - The project will remain open source! Welcome to learn from each other! Welcome PR!
 - The use of this project needs to be noted, please comply with the open source agreement!
