@@ -21,3 +21,4 @@
 #-renamesourcefileattribute SourceFile
 
 -keep class com.hchen.foregroundpin.HookMain
+-keep class * extends com.hchen.foregroundpin.hookMode.Hook
