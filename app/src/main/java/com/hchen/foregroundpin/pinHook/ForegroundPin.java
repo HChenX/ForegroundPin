@@ -1,5 +1,7 @@
 package com.hchen.foregroundpin.pinHook;
 
+import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.util.Log;
 
 import com.hchen.foregroundpin.hookMode.Hook;
@@ -8,6 +10,12 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 
 public class ForegroundPin extends Hook {
+    public int lastOri = -1;
+
+    public int ori = -1;
+
+    public int num = 0;
+
     @Override
     public void init() {
         try {
@@ -35,6 +43,54 @@ public class ForegroundPin extends Hook {
                         @Override
                         protected void before(XC_MethodHook.MethodHookParam param) {
                             param.setResult(null);
+                        }
+                    }
+            );
+
+            findAndHookMethod("com.android.server.wm.MiuiFreeFormGesturePointerEventListener",
+                    "updateScreenParams",
+                    "com.android.server.wm.DisplayContent", Configuration.class,
+                    new HookAction() {
+                        @Override
+                        protected void after(MethodHookParam param) {
+                            Configuration configuration = (Configuration) param.args[1];
+                            ori = configuration.orientation;
+                            if (lastOri == -1) lastOri = ori;
+//                            logE(tag, "updateScreenParams: ori: " + ori + " la: " + lastOri);
+                        }
+                    }
+            );
+
+            findAndHookMethod("com.android.server.wm.MiuiFreeformPinManagerService",
+                    "updatePinFloatingWindowPos",
+                    "com.android.server.wm.MiuiFreeFormActivityStack",
+                    Rect.class, boolean.class,
+                    new HookAction() {
+                        @Override
+                        protected void before(MethodHookParam param) {
+                            if (lastOri != -1 && ori != -1) {
+                                if (lastOri != ori) {
+                                    if (num == 0) {
+                                        num = 1;
+                                    } else if (num == 1) {
+                                        lastOri = ori;
+                                        num = 0;
+                                    }
+                                    if ((Boolean) XposedHelpers.callMethod(param.args[0], "inPinMode")) {
+                                        Object mGestureAnimator = XposedHelpers.getObjectField(
+                                                XposedHelpers.getObjectField(
+                                                        XposedHelpers.getObjectField(
+                                                                param.thisObject,
+                                                                "mController"),
+                                                        "mGestureListener"),
+                                                "mGestureAnimator");
+                                        XposedHelpers.callMethod(mGestureAnimator, "hideStack", param.args[0]);
+                                        XposedHelpers.callMethod(mGestureAnimator, "applyTransaction");
+//                                        logE(tag, "updatePinFloatingWindowPos: 1: " + param.args[0] + " 2: " + param.args[1] + " 3: " + param.args[2]);
+                                    }
+                                }
+                            }
+//                            logE(tag, "updatePinFloatingWindowPos: 1: " + param.args[0] + " 2: " + param.args[1] + " 3: " + param.args[2]);
                         }
                     }
             );
