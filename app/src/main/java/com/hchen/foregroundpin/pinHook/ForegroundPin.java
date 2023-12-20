@@ -86,13 +86,18 @@ public class ForegroundPin extends Hook {
                                                     "mGestureListener"),
                                             "mGestureAnimator");
                                     if (stackList.isEmpty()) return;
-                                    for (Object stack : stackList) {
+                                    /*for (Object stack : stackList) {
                                         if (stack != null) {
                                             if ((boolean) callMethod(stack, "inPinMode")) {
                                                 callMethod(mGestureAnimator, "hideStack", stack);
                                                 callMethod(mGestureAnimator, "applyTransaction");
                                             }
                                         }
+                                    }*/
+                                    /*尽量提升效率*/
+                                    if ((boolean) callMethod(param.args[0], "inPinMode")) {
+                                        callMethod(mGestureAnimator, "hideStack", param.args[0]);
+                                        callMethod(mGestureAnimator, "applyTransaction");
                                     }
                                     if (size == -1)
                                         size = stackList.size();
