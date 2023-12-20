@@ -6,6 +6,8 @@ import android.util.Log;
 
 import com.hchen.foregroundpin.hookMode.Hook;
 
+import java.util.List;
+
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 
@@ -14,6 +16,7 @@ public class ForegroundPin extends Hook {
 
     public int ori = -1;
 
+    public int size = -1;
     public int num = 0;
 
     @Override
@@ -56,7 +59,7 @@ public class ForegroundPin extends Hook {
                             Configuration configuration = (Configuration) param.args[1];
                             ori = configuration.orientation;
                             if (lastOri == -1) lastOri = ori;
-//                            logE(tag, "updateScreenParams: ori: " + ori + " la: " + lastOri);
+                            logE(tag, "updateScreenParams: ori: " + ori + " la: " + lastOri);
                         }
                     }
             );
@@ -70,27 +73,50 @@ public class ForegroundPin extends Hook {
                         protected void before(MethodHookParam param) throws Throwable {
                             if (lastOri != -1 && ori != -1) {
                                 if (lastOri != ori) {
-                                    if (num == 0) {
-                                        num = 1;
-                                    } else if (num == 1) {
-                                        lastOri = ori;
-                                        num = 0;
+                                    Object mMiuiFreeFormManagerService = getObjectField(
+                                            getObjectField(param.thisObject,
+                                                    "mController"),
+                                            "mMiuiFreeFormManagerService");
+                                    List<?> stackList = (List<?>) callMethod(mMiuiFreeFormManagerService, "getAllMiuiFreeFormActivityStack");
+                                    Object mGestureAnimator = getObjectField(
+                                            getObjectField(
+                                                    getObjectField(
+                                                            param.thisObject,
+                                                            "mController"),
+                                                    "mGestureListener"),
+                                            "mGestureAnimator");
+                                    if (stackList.isEmpty()) return;
+                                    for (Object stack : stackList) {
+                                        if (stack != null) {
+                                            if ((boolean) callMethod(stack, "inPinMode")) {
+                                                callMethod(mGestureAnimator, "hideStack", stack);
+                                                callMethod(mGestureAnimator, "applyTransaction");
+                                            }
+                                        }
                                     }
-                                    if ((boolean) callMethod(param.args[0], "inPinMode")) {
-                                        Object mGestureAnimator = getObjectField(
-                                                getObjectField(
-                                                        getObjectField(
-                                                                param.thisObject,
-                                                                "mController"),
-                                                        "mGestureListener"),
-                                                "mGestureAnimator");
-                                        callMethod(mGestureAnimator, "hideStack", param.args[0]);
-                                        callMethod(mGestureAnimator, "applyTransaction");
-//                                        logE(tag, "updatePinFloatingWindowPos: 1: " + param.args[0] + " 2: " + param.args[1] + " 3: " + param.args[2]);
+                                    if (size == -1)
+                                        size = stackList.size();
+                                    if (size == 1) {
+                                        if (num == 0) {
+                                            num = 1;
+                                        } else if (num == 1) {
+                                            lastOri = ori;
+                                            num = 0;
+                                            size = -1;
+                                        }
+                                    } else {
+                                        if (num == 0) {
+                                            num = 1;
+                                        } else if (num == 1) {
+                                            size = --size;
+                                            num = 0;
+                                        }
                                     }
                                 }
                             }
-//                            logE(tag, "updatePinFloatingWindowPos: 1: " + param.args[0] + " 2: " + param.args[1] + " 3: " + param.args[2]);
+                            /*logE(tag, "updatePinFloatingWindowPos: 1: " + param.args[0]
+                                    + " 2: " + param.args[1] + " 3: " + param.args[2] + " la " + lastOri + " oo: " + ori
+                                    + " ss: " + size);*/
                         }
                     }
             );
