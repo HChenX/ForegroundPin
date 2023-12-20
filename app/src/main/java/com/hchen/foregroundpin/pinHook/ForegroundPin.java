@@ -77,7 +77,8 @@ public class ForegroundPin extends Hook {
                                             getObjectField(param.thisObject,
                                                     "mController"),
                                             "mMiuiFreeFormManagerService");
-                                    List<?> stackList = (List<?>) callMethod(mMiuiFreeFormManagerService, "getAllMiuiFreeFormActivityStack");
+                                    List<?> stackList = (List<?>) callMethod(mMiuiFreeFormManagerService,
+                                            "getAllMiuiFreeFormActivityStack");
                                     Object mGestureAnimator = getObjectField(
                                             getObjectField(
                                                     getObjectField(
