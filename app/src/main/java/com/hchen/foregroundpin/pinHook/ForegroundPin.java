@@ -19,6 +19,7 @@ public class ForegroundPin extends Hook {
     @Override
     public void init() {
         try {
+            /*Hyper*/
             getDeclaredMethod("com.android.server.wm.MiuiFreeFormGestureController",
                     "needForegroundPin",
                     "com.android.server.wm.MiuiFreeFormActivityStack");
