@@ -1,24 +1,14 @@
 package com.hchen.foregroundpin.pinHook;
 
-import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.util.Log;
 
 import com.hchen.foregroundpin.hookMode.Hook;
 
-import java.util.List;
-
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 
 public class ForegroundPin extends Hook {
-    public int lastOri = -1;
-
-    public int ori = -1;
-
-    public int size = -1;
-    public int num = 0;
-
     @Override
     public void init() {
         try {
@@ -50,79 +40,25 @@ public class ForegroundPin extends Hook {
                     }
             );
 
-            findAndHookMethod("com.android.server.wm.MiuiFreeFormGesturePointerEventListener",
-                    "updateScreenParams",
-                    "com.android.server.wm.DisplayContent", Configuration.class,
-                    new HookAction() {
-                        @Override
-                        protected void after(MethodHookParam param) {
-                            Configuration configuration = (Configuration) param.args[1];
-                            ori = configuration.orientation;
-                            if (lastOri == -1) lastOri = ori;
-                            logE(tag, "updateScreenParams: ori: " + ori + " la: " + lastOri);
-                        }
-                    }
-            );
-
             findAndHookMethod("com.android.server.wm.MiuiFreeformPinManagerService",
                     "updatePinFloatingWindowPos",
                     "com.android.server.wm.MiuiFreeFormActivityStack",
                     Rect.class, boolean.class,
                     new HookAction() {
                         @Override
-                        protected void before(MethodHookParam param) throws Throwable {
-                            if (lastOri != -1 && ori != -1) {
-                                if (lastOri != ori) {
-                                    Object mMiuiFreeFormManagerService = getObjectField(
-                                            getObjectField(param.thisObject,
-                                                    "mController"),
-                                            "mMiuiFreeFormManagerService");
-                                    List<?> stackList = (List<?>) callMethod(mMiuiFreeFormManagerService,
-                                            "getAllMiuiFreeFormActivityStack");
-                                    Object mGestureAnimator = getObjectField(
-                                            getObjectField(
-                                                    getObjectField(
-                                                            param.thisObject,
-                                                            "mController"),
-                                                    "mGestureListener"),
-                                            "mGestureAnimator");
-                                    if (stackList.isEmpty()) return;
-                                    for (Object stack : stackList) {
-                                        if (stack != null) {
-                                            if ((boolean) callMethod(stack, "inPinMode")) {
-                                                callMethod(mGestureAnimator, "hideStack", stack);
-                                                callMethod(mGestureAnimator, "applyTransaction");
-                                            }
-                                        }
-                                    }
-                                    /*尽量提升效率*/
-                                    /*if ((boolean) callMethod(param.args[0], "inPinMode")) {
-                                        callMethod(mGestureAnimator, "hideStack", param.args[0]);
-                                        callMethod(mGestureAnimator, "applyTransaction");
-                                    }*/
-                                    if (size == -1)
-                                        size = stackList.size();
-                                    if (size == 1) {
-                                        if (num == 0) {
-                                            num = 1;
-                                        } else if (num == 1) {
-                                            lastOri = ori;
-                                            num = 0;
-                                            size = -1;
-                                        }
-                                    } else {
-                                        if (num == 0) {
-                                            num = 1;
-                                        } else if (num == 1) {
-                                            size = --size;
-                                            num = 0;
-                                        }
-                                    }
-                                }
+                        protected void after(MethodHookParam param) throws Throwable {
+                            if ((boolean) param.args[2]) {
+                                Object mGestureAnimator = getObjectField(
+                                        getObjectField(
+                                                getObjectField(
+                                                        param.thisObject,
+                                                        "mController"),
+                                                "mGestureListener"),
+                                        "mGestureAnimator");
+                                /*尽量提升效率*/
+                                callMethod(mGestureAnimator, "hideStack", param.args[0]);
+                                callMethod(mGestureAnimator, "applyTransaction");
                             }
-                            /*logE(tag, "updatePinFloatingWindowPos: 1: " + param.args[0]
-                                    + " 2: " + param.args[1] + " 3: " + param.args[2] + " la " + lastOri + " oo: " + ori
-                                    + " ss: " + size);*/
                         }
                     }
             );
