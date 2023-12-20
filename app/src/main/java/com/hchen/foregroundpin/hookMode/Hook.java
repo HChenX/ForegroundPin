@@ -21,9 +21,9 @@ public abstract class Hook extends Log {
         try {
             SetLoadPackageParam(loadPackageParam);
             init();
-            logI(tag, "Hook Success!");
-        } catch (Throwable e) {
-            logE(tag, "Hook Failed: " + e);
+            logI(tag, "Hook Done!");
+        } catch (Throwable s) {
+//            logE(tag, "Hook Failed: " + e);
         }
     }
 
@@ -59,10 +59,10 @@ public abstract class Hook extends Log {
 
     public abstract static class HookAction extends XC_MethodHook {
 
-        protected void before(MethodHookParam param) {
+        protected void before(MethodHookParam param) throws Throwable {
         }
 
-        protected void after(MethodHookParam param) {
+        protected void after(MethodHookParam param) throws Throwable {
         }
 
         public HookAction() {
@@ -76,7 +76,7 @@ public abstract class Hook extends Log {
         public static HookAction returnConstant(final Object result) {
             return new HookAction(PRIORITY_DEFAULT) {
                 @Override
-                protected void before(MethodHookParam param) {
+                protected void before(MethodHookParam param) throws Throwable {
                     super.before(param);
                     param.setResult(result);
                 }
@@ -86,7 +86,7 @@ public abstract class Hook extends Log {
         public static final HookAction DO_NOTHING = new HookAction(PRIORITY_HIGHEST * 2) {
 
             @Override
-            protected void before(MethodHookParam param) {
+            protected void before(MethodHookParam param) throws Throwable {
                 super.before(param);
                 param.setResult(null);
             }
@@ -122,7 +122,7 @@ public abstract class Hook extends Log {
             super(priority);
         }
 
-        protected abstract Object replace(MethodHookParam param);
+        protected abstract Object replace(MethodHookParam param) throws Throwable;
 
         @Override
         public void beforeHookedMethod(MethodHookParam param) {
@@ -154,7 +154,9 @@ public abstract class Hook extends Log {
             if (parameterTypesAndCallback.length != 1) {
                 Object[] newArray = new Object[parameterTypesAndCallback.length - 1];
                 System.arraycopy(parameterTypesAndCallback, 0, newArray, 0, newArray.length);
-                Class<?>[] classes = new Class<?>[newArray.length];
+                getDeclaredMethod(clazz, methodName, newArray);
+                /*旧实现*/
+                /*Class<?>[] classes = new Class<?>[newArray.length];
                 Class<?> newclass = null;
                 for (int i = 0; i < newArray.length; i++) {
                     Object type = newArray[i];
@@ -169,11 +171,11 @@ public abstract class Hook extends Log {
                     }
                     classes[i] = newclass;
                 }
-                checkDeclaredMethod(clazz, methodName, classes);
+                checkDeclaredMethod(clazz, methodName, classes);*/
             }
             XposedHelpers.findAndHookMethod(clazz, methodName, parameterTypesAndCallback);
             logI(tag, "Hook: " + clazz + " method: " + methodName);
-        } catch (NoSuchMethodException e) {
+        } catch (Throwable e) {
             logE(tag, "Not find method: " + methodName + " in: " + clazz);
         }
     }
@@ -235,8 +237,13 @@ public abstract class Hook extends Log {
         }
     }
 
-    public Object callMethod(Object obj, String methodName, Object... args) {
-        return XposedHelpers.callMethod(obj, methodName, args);
+    public Object callMethod(Object obj, String methodName, Object... args) throws Throwable {
+        try {
+            return XposedHelpers.callMethod(obj, methodName, args);
+        } catch (Throwable e) {
+            logE(tag, "callMethod: " + obj.toString() + " method: " + methodName + " args: " + Arrays.toString(args) + " e: " + e);
+            throw new Throwable(tag + ": callMethod error");
+        }
     }
 
     public Object callStaticMethod(Class<?> clazz, String methodName, Object... args) {
@@ -248,7 +255,7 @@ public abstract class Hook extends Log {
     }
 
     public Method getDeclaredMethod(Class<?> clazz, String method, Object... type) throws NoSuchMethodException {
-        String tag = "getDeclaredMethod";
+//        String tag = "getDeclaredMethod";
         ArrayList<Method> haveMethod = new ArrayList<>();
         Method hqMethod = null;
         int methodNum;
@@ -351,12 +358,21 @@ public abstract class Hook extends Log {
     public void checkLast(String setObject, Object fieldName, Object value, Object last) {
         if (value != null && last != null) {
             if (value == last || value.equals(last)) {
-                logI(tag, setObject + " Success! set " + fieldName + " to " + value);
+                logSI(tag, setObject + " Success! set " + fieldName + " to " + value);
             } else {
-                logE(tag, setObject + " Failed! set " + fieldName + " to " + value + " hope: " + value + " but: " + last);
+                logSE(tag, setObject + " Failed! set " + fieldName + " to " + value + " hope: " + value + " but: " + last);
             }
         } else {
-            logE(tag, setObject + " Error value: " + value + " or last: " + last + " is null");
+            logSE(tag, setObject + " Error value: " + value + " or last: " + last + " is null");
+        }
+    }
+
+    public Object getObjectField(Object obj, String fieldName) throws Throwable {
+        try {
+            return XposedHelpers.getObjectField(obj, fieldName);
+        } catch (Throwable e) {
+            logE(tag, "getObject: " + obj.toString() + " field: " + fieldName);
+            throw new Throwable(tag + ": getObject error");
         }
     }
 
@@ -403,7 +419,7 @@ public abstract class Hook extends Log {
             obj.getClass().getDeclaredField(fieldName);
             setField.run();
             checkLast.run();
-        } catch (NoSuchFieldException e) {
+        } catch (Throwable e) {
             logE(tag, "No such field: " + fieldName + " in param: " + obj + " : " + e);
         }
     }

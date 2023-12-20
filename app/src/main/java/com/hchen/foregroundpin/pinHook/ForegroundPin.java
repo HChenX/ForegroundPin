@@ -67,7 +67,7 @@ public class ForegroundPin extends Hook {
                     Rect.class, boolean.class,
                     new HookAction() {
                         @Override
-                        protected void before(MethodHookParam param) {
+                        protected void before(MethodHookParam param) throws Throwable {
                             if (lastOri != -1 && ori != -1) {
                                 if (lastOri != ori) {
                                     if (num == 0) {
@@ -76,16 +76,16 @@ public class ForegroundPin extends Hook {
                                         lastOri = ori;
                                         num = 0;
                                     }
-                                    if ((Boolean) XposedHelpers.callMethod(param.args[0], "inPinMode")) {
-                                        Object mGestureAnimator = XposedHelpers.getObjectField(
-                                                XposedHelpers.getObjectField(
-                                                        XposedHelpers.getObjectField(
+                                    if ((boolean) callMethod(param.args[0], "inPinMode")) {
+                                        Object mGestureAnimator = getObjectField(
+                                                getObjectField(
+                                                        getObjectField(
                                                                 param.thisObject,
                                                                 "mController"),
                                                         "mGestureListener"),
                                                 "mGestureAnimator");
-                                        XposedHelpers.callMethod(mGestureAnimator, "hideStack", param.args[0]);
-                                        XposedHelpers.callMethod(mGestureAnimator, "applyTransaction");
+                                        callMethod(mGestureAnimator, "hideStack", param.args[0]);
+                                        callMethod(mGestureAnimator, "applyTransaction");
 //                                        logE(tag, "updatePinFloatingWindowPos: 1: " + param.args[0] + " 2: " + param.args[1] + " 3: " + param.args[2]);
                                     }
                                 }
@@ -113,9 +113,9 @@ public class ForegroundPin extends Hook {
                     "com.android.server.wm.MiuiFreeFormFloatIconInfo",
                     new HookAction() {
                         @Override
-                        protected void before(XC_MethodHook.MethodHookParam param) {
+                        protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
                             Object mffas = param.args[0];
-                            Object activityRecord = XposedHelpers.callMethod(XposedHelpers.getObjectField(mffas, "mTask"),
+                            Object activityRecord = callMethod(XposedHelpers.getObjectField(mffas, "mTask"),
                                     "getTopNonFinishingActivity");
                             /*遵循安卓日志*/
                             Log.i("MiuiFreeformPinManagerService",
@@ -124,13 +124,13 @@ public class ForegroundPin extends Hook {
                                 param.setResult(null);
                                 return;
                             }
-                            XposedHelpers.setObjectField(mffas, "mEnterVelocityX", param.args[1]);
-                            XposedHelpers.setObjectField(mffas, "mEnterVelocityY", param.args[2]);
-                            XposedHelpers.setObjectField(mffas, "mIsEnterClick", param.args[3]);
-                            XposedHelpers.setObjectField(mffas, "mIsPinFloatingWindowPosInit", false);
-                            XposedHelpers.callMethod(param.thisObject, "setUpMiuiFreeWindowFloatIconAnimation",
+                            setObject(mffas, "mEnterVelocityX", param.args[1]);
+                            setObject(mffas, "mEnterVelocityY", param.args[2]);
+                            setObject(mffas, "mIsEnterClick", param.args[3]);
+                            setObject(mffas, "mIsPinFloatingWindowPosInit", false);
+                            callMethod(param.thisObject, "setUpMiuiFreeWindowFloatIconAnimation",
                                     mffas, activityRecord, param.args[4], param.args[5]);
-                            XposedHelpers.callMethod(param.thisObject, "startUnPinAnimation", mffas);
+                            callMethod(param.thisObject, "startUnPinAnimation", mffas);
                             param.setResult(null);
                         }
                     }
@@ -141,38 +141,38 @@ public class ForegroundPin extends Hook {
                     "com.android.server.wm.MiuiFreeFormActivityStack",
                     new HookAction() {
                         @Override
-                        protected void before(MethodHookParam param) {
+                        protected void before(MethodHookParam param) throws Throwable {
                             Object mffas = param.args[0];
-                            Object mGestureListener = XposedHelpers.getObjectField(param.thisObject, "mGestureListener");
-                            if ((boolean) XposedHelpers.callMethod(mffas, "isInFreeFormMode")) {
-                                XposedHelpers.callMethod(mGestureListener, "startFullScreenFromFreeFormAnimation", mffas);
-                                Object mTrackManager = XposedHelpers.getObjectField(param.thisObject, "mTrackManager");
+                            Object mGestureListener = getObjectField(param.thisObject, "mGestureListener");
+                            if ((boolean) callMethod(mffas, "isInFreeFormMode")) {
+                                callMethod(mGestureListener, "startFullScreenFromFreeFormAnimation", mffas);
+                                Object mTrackManager = getObjectField(param.thisObject, "mTrackManager");
                                 if (mTrackManager != null) {
-                                    XposedHelpers.callMethod(mTrackManager, "trackSmallWindowPinedQuitEvent",
-                                            XposedHelpers.callMethod(mffas, "getStackPackageName"),
-                                            XposedHelpers.callMethod(mffas, "getApplicationName"),
-                                            (long) XposedHelpers.getObjectField(mffas, "mPinedStartTime") != 0 ?
+                                    callMethod(mTrackManager, "trackSmallWindowPinedQuitEvent",
+                                            callMethod(mffas, "getStackPackageName"),
+                                            callMethod(mffas, "getApplicationName"),
+                                            (long) getObjectField(mffas, "mPinedStartTime") != 0 ?
                                                     ((float) (System.currentTimeMillis() -
-                                                            (long) XposedHelpers.getObjectField(mffas,
+                                                            (long) getObjectField(mffas,
                                                                     "mPinedStartTime"))) / 1000.0f : 0.0f
                                     );
                                 }
-                            } else if ((boolean) XposedHelpers.callMethod(mffas, "isInMiniFreeFormMode")) {
-                                XposedHelpers.callMethod(mGestureListener, "startFullScreenFromSmallAnimation", mffas);
-                                Object mTrackManager = XposedHelpers.getObjectField(param.thisObject, "mTrackManager");
+                            } else if ((boolean) callMethod(mffas, "isInMiniFreeFormMode")) {
+                                callMethod(mGestureListener, "startFullScreenFromSmallAnimation", mffas);
+                                Object mTrackManager = getObjectField(param.thisObject, "mTrackManager");
                                 if (mTrackManager != null) {
-                                    XposedHelpers.callMethod(mTrackManager, "trackMiniWindowPinedQuitEvent",
-                                            XposedHelpers.callMethod(mffas, "getStackPackageName"),
-                                            XposedHelpers.callMethod(mffas, "getApplicationName"),
-                                            (long) XposedHelpers.getObjectField(mffas, "mPinedStartTime") != 0 ?
+                                    callMethod(mTrackManager, "trackMiniWindowPinedQuitEvent",
+                                            callMethod(mffas, "getStackPackageName"),
+                                            callMethod(mffas, "getApplicationName"),
+                                            (long) getObjectField(mffas, "mPinedStartTime") != 0 ?
                                                     ((float) (System.currentTimeMillis() -
-                                                            (long) XposedHelpers.getObjectField(mffas,
+                                                            (long) getObjectField(mffas,
                                                                     "mPinedStartTime"))) / 1000.0f : 0.0f
                                     );
                                 }
                             }
-                            XposedHelpers.setObjectField(mffas, "mPinedStartTime", 0L);
-                            XposedHelpers.callMethod(mffas, "setInPinMode", false);
+                            setObject(mffas, "mPinedStartTime", 0L);
+                            callMethod(mffas, "setInPinMode", false);
                             param.setResult(null);
                         }
                     }
