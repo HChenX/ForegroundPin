@@ -40,23 +40,26 @@ public class ForegroundPin extends Hook {
                     }
             );
 
-            findAndHookMethod("com.android.server.wm.MiuiFreeformPinManagerService",
+            findAndHookMethod("com.android.server.wm.MiuiFreeFormManagerService",
                     "updatePinFloatingWindowPos",
-                    "com.android.server.wm.MiuiFreeFormActivityStack",
-                    Rect.class, boolean.class,
-                    new HookAction() {
+                    Rect.class, int.class, boolean.class, new HookAction() {
                         @Override
-                        protected void after(MethodHookParam param) throws Throwable {
+                        protected void before(MethodHookParam param) throws Throwable {
                             if ((boolean) param.args[2]) {
-                                Object mGestureAnimator = getObjectField(
+                                Object mffas = callMethod(param.thisObject, "getMiuiFreeFormActivityStackForMiuiFB", param.args[1]);
+                                callMethod(getObjectField(mffas, "mLastIconLayerWindowToken"), "setVisibility", false, false);
+                                Object mMiuiFreeFormGestureController = getObjectField(
                                         getObjectField(
                                                 getObjectField(
                                                         param.thisObject,
-                                                        "mController"),
+                                                        "mActivityTaskManagerService"),
+                                                "mWindowManager"),
+                                        "mMiuiFreeFormGestureController");
+                                Object mGestureAnimator = getObjectField(
+                                        getObjectField(mMiuiFreeFormGestureController,
                                                 "mGestureListener"),
                                         "mGestureAnimator");
-                                /*尽量提升效率*/
-                                callMethod(mGestureAnimator, "hideStack", param.args[0]);
+                                callMethod(mGestureAnimator, "hideStack", mffas);
                                 callMethod(mGestureAnimator, "applyTransaction");
                             }
                         }

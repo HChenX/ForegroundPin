@@ -1,5 +1,9 @@
 package com.hchen.foregroundpin.pinHook;
 
+import static de.robv.android.xposed.callbacks.XCallback.PRIORITY_LOWEST;
+
+import android.graphics.Rect;
+
 import com.hchen.foregroundpin.hookMode.Hook;
 
 public class Test extends Hook {
@@ -11,6 +15,33 @@ public class Test extends Hook {
                     @Override
                     protected void before(MethodHookParam param) {
                         logE(tag, "dropToFreeForm im run");
+                    }
+                }
+        );
+
+        findAndHookMethod("com.android.server.wm.MiuiFreeformPinManagerService",
+                "updatePinFloatingWindowPos",
+                "com.android.server.wm.MiuiFreeFormActivityStack",
+                Rect.class, boolean.class,
+                new HookAction(PRIORITY_LOWEST * 2) {
+                    @Override
+                    protected void after(MethodHookParam param) throws Throwable {
+                        if ((boolean) param.args[2]) {
+                            Object mGestureAnimator = getObjectField(
+                                    getObjectField(
+                                            getObjectField(
+                                                    param.thisObject,
+                                                    "mController"),
+                                            "mGestureListener"),
+                                    "mGestureAnimator");
+                            /*尽量提升效率*/
+                            callMethod(
+                                    getObjectField(param.args[0],
+                                            "mLastIconLayerWindowToken"),
+                                    "setVisibility", false, false);
+//                                callMethod(mGestureAnimator, "hideStack", param.args[0]);
+//                                callMethod(mGestureAnimator, "applyTransaction");
+                        }
                     }
                 }
         );
@@ -47,7 +78,7 @@ public class Test extends Hook {
                     @Override
                     protected void before(MethodHookParam param) {
                         logE(tag, "hideStack: " + param.args[0]);
-//                            param.setResult(null);
+                            param.setResult(null);
                     }
                 }
         );
@@ -58,11 +89,10 @@ public class Test extends Hook {
                 new HookAction() {
                     @Override
                     protected void before(MethodHookParam param) {
-//                            logE(tag, "hide: " + param.args[0]);
+                            logE(tag, "hide: " + param.args[0]);
                     }
                 }
         );
-
 
         findAndHookMethod("com.android.server.wm.MiuiFreeFormGestureAnimator",
                 "showStack",
@@ -71,7 +101,7 @@ public class Test extends Hook {
                     @Override
                     protected void before(MethodHookParam param) {
                         logE(tag, "showStack: " + param.args[0]);
-//                            param.setResult(null);
+                            param.setResult(null);
                     }
                 }
         );
