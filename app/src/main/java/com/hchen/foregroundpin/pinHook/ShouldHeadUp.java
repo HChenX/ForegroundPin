@@ -12,7 +12,7 @@ public class ShouldHeadUp extends Hook {
                 new HookAction() {
                     @Override
                     protected void before(MethodHookParam param) {
-//                        logE(tag, "kkkk: " + param.args[0] + " 2: " + param.args[1]);
+                        // logE(tag, "kkkk: " + param.args[0] + " 2: " + param.args[1]);
                     }
                 }
         );
@@ -24,7 +24,7 @@ public class ShouldHeadUp extends Hook {
                 new HookAction() {
                     @Override
                     protected void before(MethodHookParam param) {
-//                        logE(tag, "ttt1: " + param.args[0] + " 2: " + param.args[1]);
+                        // logE(tag, "ttt1: " + param.args[0] + " 2: " + param.args[1]);
                     }
                 }
         );
@@ -34,8 +34,8 @@ public class ShouldHeadUp extends Hook {
                 new HookAction() {
                     @Override
                     protected void before(MethodHookParam param) {
-//                        param.setResult(true);
-//                        logE(tag, "ppp1: " + param.args[0] + " 2: " + param.args[1]);
+                        // param.setResult(true);
+                        // logE(tag, "ppp1: " + param.args[0] + " 2: " + param.args[1]);
                     }
                 }
         );

@@ -2,7 +2,6 @@ package com.hchen.foregroundpin;
 
 import com.hchen.foregroundpin.hookMode.Hook;
 import com.hchen.foregroundpin.pinHook.ForegroundPin;
-import com.hchen.foregroundpin.pinHook.ShouldHeadUp;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
