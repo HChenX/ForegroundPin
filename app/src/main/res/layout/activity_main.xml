@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusableInTouchMode="true"
+    tools:context=".ui.MianActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/Theme.Pin"
+        app:elevation="0dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/Theme.Pin.PopupOverlay"
+            app:theme="@style/Theme.Pin.MenuColor"
+            app:title="@string/app_name"
+            app:titleTextAppearance="@style/Toolbar.TitleText"
+            app:titleTextColor="?attr/colorSecondary" />
+
+        <include layout="@layout/activity_filter" />
+        <include layout="@layout/user_app_list" />
+
+        <include layout="@layout/running_app_list" />
+
+
+
+
+    </com.google.android.material.appbar.AppBarLayout>
+<!--    <include layout="@layout/loading"/>-->
+
+</androidx.constraintlayout.widget.ConstraintLayout>

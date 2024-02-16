@@ -3,4 +3,9 @@
     <string-array name="hook_app">
         <item>android</item>
     </string-array>
+
+    <string-array name="app_filter">
+        <item>@string/app_list</item>
+        <item>@string/running_list</item>
+    </string-array>
 </resources>
