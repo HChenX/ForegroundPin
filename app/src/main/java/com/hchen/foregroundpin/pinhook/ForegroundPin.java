@@ -16,12 +16,12 @@
 
  * Copyright (C) 2023-2024 ForegroundPin Contributions
  */
-package com.hchen.foregroundpin.pinHook;
+package com.hchen.foregroundpin.pinhook;
 
 import android.util.Log;
 import android.view.SurfaceControl;
 
-import com.hchen.foregroundpin.hookMode.Hook;
+import com.hchen.foregroundpin.mode.Hook;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
@@ -149,7 +149,7 @@ public class ForegroundPin extends Hook {
                     "com.android.server.wm.MiuiFreeFormFloatIconInfo",
                     new HookAction() {
                         @Override
-                        protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+                        protected void before(XC_MethodHook.MethodHookParam param) {
                             Object mffas = param.args[0];
                             Object activityRecord = callMethod(XposedHelpers.getObjectField(mffas, "mTask"),
                                     "getTopNonFinishingActivity");
@@ -177,7 +177,7 @@ public class ForegroundPin extends Hook {
                     "com.android.server.wm.MiuiFreeFormActivityStack",
                     new HookAction() {
                         @Override
-                        protected void before(MethodHookParam param) throws Throwable {
+                        protected void before(MethodHookParam param) {
                             Object mffas = param.args[0];
                             Object mGestureListener = getObjectField(param.thisObject, "mGestureListener");
                             if ((boolean) callMethod(mffas, "isInFreeFormMode")) {

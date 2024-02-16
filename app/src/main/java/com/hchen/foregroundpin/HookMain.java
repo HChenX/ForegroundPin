@@ -18,13 +18,16 @@
  */
 package com.hchen.foregroundpin;
 
-import com.hchen.foregroundpin.hookMode.Hook;
-import com.hchen.foregroundpin.pinHook.ForegroundPin;
+import com.hchen.foregroundpin.mode.Hook;
+import com.hchen.foregroundpin.pinhook.ForegroundPin;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
+import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
-public class HookMain implements IXposedHookLoadPackage {
+public class HookMain implements IXposedHookLoadPackage, IXposedHookZygoteInit {
+    public static String modulePath;
+
     @Override
     public void handleLoadPackage(LoadPackageParam lpparam) {
         switch (lpparam.packageName) {
@@ -32,7 +35,7 @@ public class HookMain implements IXposedHookLoadPackage {
                 initHook(new ForegroundPin(), lpparam);
             }
             case "com.miui.securitycenter" -> {
-//                initHook(new ShouldHeadUp(), lpparam);
+                // initHook(new ShouldHeadUp(), lpparam);
             }
         }
     }
@@ -41,4 +44,8 @@ public class HookMain implements IXposedHookLoadPackage {
         hook.runHook(param);
     }
 
+    @Override
+    public void initZygote(StartupParam startupParam) {
+        modulePath = startupParam.modulePath;
+    }
 }

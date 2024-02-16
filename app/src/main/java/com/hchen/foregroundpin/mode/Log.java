@@ -16,7 +16,7 @@
 
  * Copyright (C) 2023-2024 ForegroundPin Contributions
  */
-package com.hchen.foregroundpin.hookMode;
+package com.hchen.foregroundpin.mode;
 
 import de.robv.android.xposed.XposedBridge;
 

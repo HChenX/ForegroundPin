@@ -16,10 +16,13 @@
 
  * Copyright (C) 2023-2024 ForegroundPin Contributions
  */
-package com.hchen.foregroundpin.pinHook;
+package com.hchen.foregroundpin.pinhook;
 
-import com.hchen.foregroundpin.hookMode.Hook;
+import com.hchen.foregroundpin.mode.Hook;
 
+/**
+ * 这些是手机管家的气泡通知方法，暂时没有用。
+ */
 public class ShouldHeadUp extends Hook {
     @Override
     public void init() {
@@ -30,7 +33,7 @@ public class ShouldHeadUp extends Hook {
                 new HookAction() {
                     @Override
                     protected void before(MethodHookParam param) {
-                        // logE(tag, "kkkk: " + param.args[0] + " 2: " + param.args[1]);
+                        // logE();
                     }
                 }
         );
@@ -42,7 +45,7 @@ public class ShouldHeadUp extends Hook {
                 new HookAction() {
                     @Override
                     protected void before(MethodHookParam param) {
-                        // logE(tag, "ttt1: " + param.args[0] + " 2: " + param.args[1]);
+                        // logE();
                     }
                 }
         );
@@ -53,7 +56,7 @@ public class ShouldHeadUp extends Hook {
                     @Override
                     protected void before(MethodHookParam param) {
                         // param.setResult(true);
-                        // logE(tag, "ppp1: " + param.args[0] + " 2: " + param.args[1]);
+                        // logE();
                     }
                 }
         );
