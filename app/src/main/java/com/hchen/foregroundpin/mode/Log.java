@@ -42,18 +42,30 @@ public class Log {
     }
 
     public static void logSI(String name, String tag, String log) {
-        android.util.Log.i(mHook + name + mode, "[" + tag + "]: I: " + log);
+        android.util.Log.i(mHook + name + mode, "[" + tag + "][I]: " + log);
     }
 
     public static void logSI(String tag, String log) {
-        android.util.Log.i(hookMain, "[" + tag + "]: I: " + log);
+        android.util.Log.i(hookMain, "[" + tag + "][I]: " + log);
     }
 
     public static void logSW(String tag, String log) {
-        android.util.Log.w(hookMain, "[" + tag + "]: W: " + log);
+        android.util.Log.w(hookMain, "[" + tag + "][W]: " + log);
     }
 
-    public void logSE(String tag, String log) {
-        android.util.Log.e(hookMain, "[" + tag + "]: E: " + log);
+    public static void logSW(String tag, String log, Throwable tr) {
+        android.util.Log.w(hookMain, "[" + tag + "][W]: " + log, tr);
+    }
+
+    public static void logSE(String tag, Throwable tr) {
+        android.util.Log.e(hookMain, "[" + tag + "][E]: ", tr);
+    }
+
+    public static void logSE(String tag, String log) {
+        android.util.Log.e(hookMain, "[" + tag + "][E]: " + log);
+    }
+
+    public static void logSE(String tag, String log, Throwable tr) {
+        android.util.Log.e(hookMain, "[" + tag + "][E]: " + log, tr);
     }
 }
