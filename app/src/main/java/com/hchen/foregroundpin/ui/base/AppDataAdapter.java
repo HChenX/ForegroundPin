@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -33,7 +34,9 @@ public class AppDataAdapter extends ArrayAdapter<AppData> {
         if (appData == null) return convertView;
         ImageView imageView = convertView.findViewById(R.id.app_icon);
         TextView name = convertView.findViewById(R.id.app_name);
+        CheckBox checkBox = convertView.findViewById(R.id.check_box);
 
+        checkBox.setChecked(true);
         imageView.setImageDrawable(appData.icon);
         name.setText(appData.label);
 

@@ -8,10 +8,11 @@ import android.content.pm.ResolveInfo;
 import android.os.Handler;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
 import android.widget.ListView;
 
 import com.hchen.foregroundpin.R;
-import com.hchen.foregroundpin.callback.AppListView;
+import com.hchen.foregroundpin.callback.IAppListView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class AppPicker implements AppListView {
+public class AppPicker implements IAppListView {
     private final ListView listView;
     private final AppDataAdapter appDataAdapter;
     private final Handler handler;
@@ -35,6 +36,12 @@ public class AppPicker implements AppListView {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 AppData appData = appDataList.get((int) id);
+                CheckBox checkBox = view.findViewById(R.id.check_box);
+                if (checkBox.isChecked()) {
+                    checkBox.setChecked(false);
+                } else {
+                    checkBox.setChecked(true);
+                }
             }
         });
     }
