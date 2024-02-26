@@ -2,6 +2,7 @@ package com.hchen.foregroundpin.utils.shell;
 
 import androidx.annotation.Nullable;
 
+import com.hchen.foregroundpin.callback.IResult;
 import com.hchen.foregroundpin.mode.Log;
 
 import java.io.BufferedReader;
@@ -84,30 +85,30 @@ public class ShellExec {
     }
 
     /**
-     * 参考 {@link ShellExec#ShellExec(String, boolean, boolean, ICommandOutPut)}
+     * 参考 {@link ShellExec#ShellExec(String, boolean, boolean, IResult)}
      */
     public ShellExec(boolean root) {
         this("", root, false, null);
     }
 
     /**
-     * 参考 {@link ShellExec#ShellExec(String, boolean, boolean, ICommandOutPut)}
+     * 参考 {@link ShellExec#ShellExec(String, boolean, boolean, IResult)}
      */
-    public ShellExec(boolean root, @Nullable ICommandOutPut listen) {
+    public ShellExec(boolean root, @Nullable IResult listen) {
         this("", root, false, listen);
     }
 
     /**
-     * 参考 {@link ShellExec#ShellExec(String, boolean, boolean, ICommandOutPut)}
+     * 参考 {@link ShellExec#ShellExec(String, boolean, boolean, IResult)}
      */
     public ShellExec(boolean root, boolean result) {
         this("", root, result, null);
     }
 
     /**
-     * 参考 {@link ShellExec#ShellExec(String, boolean, boolean, ICommandOutPut)}
+     * 参考 {@link ShellExec#ShellExec(String, boolean, boolean, IResult)}
      */
-    public ShellExec(boolean root, boolean result, @Nullable ICommandOutPut listen) {
+    public ShellExec(boolean root, boolean result, @Nullable IResult listen) {
         this("", root, result, listen);
     }
 
@@ -119,7 +120,7 @@ public class ShellExec {
      * @param result  是否需要获取每条命令的返回值。
      * @param listen  回调方法，可以是 null，类有能力处理。
      */
-    public ShellExec(String command, boolean root, boolean result, @Nullable ICommandOutPut listen) {
+    public ShellExec(String command, boolean root, boolean result, @Nullable IResult listen) {
         try {
             OutPut.setOutputListen(listen);
             Error.setOutputListen(listen);
@@ -407,7 +408,7 @@ public class ShellExec {
         private final String contrast;
         private final ShellExec shellExec;
 
-        private static ICommandOutPut mICommandOutPut;
+        private static IResult mIResult;
 
         public OutPut(InputStream inputStream, ShellExec shellExec, boolean listen) {
             contrast = "The execution of command <";
@@ -418,13 +419,13 @@ public class ShellExec {
             mInput = inputStream;
         }
 
-        public static void setOutputListen(ICommandOutPut iCommandOutPut) {
-            mICommandOutPut = iCommandOutPut;
+        public static void setOutputListen(IResult iResult) {
+            mIResult = iResult;
         }
 
         @Override
         public void run() {
-            boolean use = mICommandOutPut != null;
+            boolean use = mIResult != null;
             try (BufferedReader br = new BufferedReader(new InputStreamReader(mInput))) {
                 String line;
                 while ((line = br.readLine()) != null) {
@@ -436,9 +437,9 @@ public class ShellExec {
                             String result = matcher.group(2);
                             if (result != null && count != null) {
                                 if (use) {
-                                    mICommandOutPut.result(command.passCommands.get(Integer.parseInt(count)),
+                                    mIResult.result(command.passCommands.get(Integer.parseInt(count)),
                                             Integer.parseInt(result));
-                                    mICommandOutPut.readOutput("Finish!!", true);
+                                    mIResult.readOutput("Finish!!", true);
                                 }
                                 shellExec.setResult = Integer.parseInt(result);
                                 synchronized (shellExec) {
@@ -452,7 +453,7 @@ public class ShellExec {
                         }
                     }
                     shellExec.outPut.add(line);
-                    if (use) mICommandOutPut.readOutput(line, false);
+                    if (use) mIResult.readOutput(line, false);
                 }
             } catch (IOException e) {
                 Log.logSE(TAG, "Shell OutPut run E", e);
@@ -470,7 +471,7 @@ public class ShellExec {
         private final ShellExec shellExec;
         private final Pattern pattern;
         private final Command command;
-        private static ICommandOutPut mICommandOutPut;
+        private static IResult mIResult;
 
         public Error(InputStream inputStream, ShellExec shellExec, boolean listen) {
             pattern = Pattern.compile(".*<(\\d+)>.*<(\\d+)>.*");
@@ -480,13 +481,13 @@ public class ShellExec {
             this.shellExec = shellExec;
         }
 
-        public static void setOutputListen(ICommandOutPut iCommandOutPut) {
-            mICommandOutPut = iCommandOutPut;
+        public static void setOutputListen(IResult iResult) {
+            mIResult = iResult;
         }
 
         @Override
         public void run() {
-            boolean use = mICommandOutPut != null;
+            boolean use = mIResult != null;
             try (BufferedReader br = new BufferedReader(new InputStreamReader(mInput))) {
                 String line;
                 while ((line = br.readLine()) != null) {
@@ -497,7 +498,7 @@ public class ShellExec {
                         String result = matcher.group(2);
                         if (result != null && count != null) {
                             if (use)
-                                mICommandOutPut.result(command.passCommands.get(Integer.parseInt(count)),
+                                mIResult.result(command.passCommands.get(Integer.parseInt(count)),
                                         Integer.parseInt(result));
                             shellExec.setResult = Integer.parseInt(result);
                             synchronized (shellExec) {
@@ -510,7 +511,7 @@ public class ShellExec {
                         }
                     }
                     shellExec.error.add(line);
-                    if (use) mICommandOutPut.readError(line);
+                    if (use) mIResult.readError(line);
                 }
             } catch (IOException e) {
                 Log.logSE(TAG, "Shell Error run E", e);
@@ -534,34 +535,6 @@ public class ShellExec {
         @Override
         public void passCommands(String command) {
             passCommands.add(command);
-        }
-    }
-
-
-    public interface ICommandOutPut {
-        /**
-         * 重写本方法可以实时获取常规流数据。
-         *
-         * @param out 常规流数据
-         */
-        default void readOutput(String out, boolean finish) {
-        }
-
-        /**
-         * 重写本方法可以实时获取错误流数据。
-         *
-         * @param out 错误流数据
-         */
-        default void readError(String out) {
-        }
-
-        /**
-         * 重写本方法可以实时获取每条命令的执行结果。
-         *
-         * @param command 命令
-         * @param result  结果
-         */
-        default void result(String command, int result) {
         }
     }
 }
