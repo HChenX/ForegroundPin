@@ -16,11 +16,6 @@ public class SettingsHelper {
     public static void threadWrite(IThreadWrite threadWrite) {
         ExecutorService executorService = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors());
-        executorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                threadWrite.thread();
-            }
-        });
+        executorService.submit(threadWrite::thread);
     }
 }

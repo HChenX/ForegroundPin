@@ -23,21 +23,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ShellInit.init();
         handler = new Handler(getMainLooper());
-        SettingsHelper.threadWrite(new IThreadWrite() {
-            @Override
-            public void thread() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        boolean result = ShellInit.getShell().run("pm grant " + getPackageName()
-                                + " android.permission.WRITE_SECURE_SETTINGS").sync().isResult();
-                        if (result) {
-                            Settings.Secure.putString(getContentResolver(), "foreground_pin_param", "[]");
-                        }
+        SettingsHelper.threadWrite(() ->
+                handler.post(() -> {
+                    // 获取权限
+                    boolean result = ShellInit.getShell().run("pm grant " + getPackageName()
+                            + " android.permission.WRITE_SECURE_SETTINGS").sync().isResult();
+                    if (result) {
+                        Settings.Secure.putString(getContentResolver(), "foreground_pin_param", "[]");
                     }
-                });
-            }
-        });
+                })
+        );
         new AppPicker(this).search(this, keyword);
     }
 
