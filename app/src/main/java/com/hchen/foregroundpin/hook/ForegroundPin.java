@@ -18,15 +18,31 @@
  */
 package com.hchen.foregroundpin.hook;
 
+import android.content.Context;
+import android.database.ContentObserver;
+import android.net.Uri;
+import android.os.Handler;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.SurfaceControl;
 
+import androidx.annotation.Nullable;
+
 import com.hchen.foregroundpin.mode.Hook;
+import com.hchen.foregroundpin.utils.settings.SettingsData;
+
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 
 public class ForegroundPin extends Hook {
+    private boolean isObserver = false;
+    private final HashMap<String, Integer> hashMap = new HashMap<>();
+
     @Override
     public void init() {
         try {
@@ -47,6 +63,39 @@ public class ForegroundPin extends Hook {
         } catch (Throwable throwable) {
             logE(tag, "Hyper UnForegroundPin E, if you is Miui don't worry : " + throwable);
             /*Miui*/
+            findAndHookMethod("com.android.server.am.ActivityManagerService",
+                    "systemReady", Runnable.class,
+                    "com.android.server.utils.TimingsTraceAndSlog",
+                    new HookAction() {
+                        @Override
+                        protected void after(MethodHookParam param) {
+                            Context mContext = (Context) getObjectField(param.thisObject, "mContext");
+                            if (mContext == null) return;
+                            if (!isObserver) {
+                                // logE(tag, "isObserver");
+                                ContentObserver contentObserver = new ContentObserver(new Handler(mContext.getMainLooper())) {
+                                    @Override
+                                    public void onChange(boolean selfChange, @Nullable Uri uri, int flags) {
+                                        hashMap.clear();
+                                        String data = getPin(mContext);
+                                        if (data == null) return;
+                                        ArrayList<JSONObject> jsonObjects = SettingsData.toArray(data);
+                                        for (JSONObject object : jsonObjects) {
+                                            String pkg = SettingsData.getPkg(object);
+                                            // logE(tag, "add pkg: " + pkg);
+                                            hashMap.put(pkg, 1);
+                                        }
+                                    }
+                                };
+                                mContext.getContentResolver().registerContentObserver(
+                                        Settings.Secure.getUriFor("foreground_pin_param"),
+                                        false, contentObserver);
+                                isObserver = true;
+                            }
+                        }
+                    }
+            );
+
             findAndHookMethod("com.android.server.wm.MiuiFreeFormGestureController",
                     "moveTaskToBack",
                     "com.android.server.wm.MiuiFreeFormActivityStack",
@@ -55,17 +104,11 @@ public class ForegroundPin extends Hook {
                         protected void before(XC_MethodHook.MethodHookParam param) {
                             Object stack = param.args[0];
                             if (stack != null) {
-                                Object mTask = XposedHelpers.getObjectField(stack, "mTask");
-                                if (mTask != null) {
-                                    SurfaceControl surfaceControl;
-                                    if (mTask != null && (surfaceControl =
-                                            (SurfaceControl) XposedHelpers.getObjectField(mTask,
-                                                    "mSurfaceControl")) != null
-                                            && surfaceControl.isValid()) {
-                                        SurfaceControl.Transaction transaction = new SurfaceControl.Transaction();
-                                        XposedHelpers.callMethod(transaction, "hide", surfaceControl);
-                                        XposedHelpers.callMethod(transaction, "apply");
-                                        // logE(tag, "moveTaskToBack: s: " + surfaceControl);
+                                String pkg = (String) callMethod(stack, "getStackPackageName");
+                                if (pkg != null) {
+                                    Integer state = hashMap.get(pkg);
+                                    if (state != null && state == 1) {
+                                        // logE(tag, "back pkg: " + pkg);
                                         param.setResult(null);
                                     }
                                 }
@@ -88,9 +131,17 @@ public class ForegroundPin extends Hook {
                     "prepareSurfaces", new HookAction() {
                         @Override
                         protected void after(MethodHookParam param) {
+                            String pkg = (String) XposedHelpers.callMethod(param.thisObject, "getPackageName");
+                            if (pkg != null) {
+                                Integer state = hashMap.get(pkg);
+                                if (state != null && state == 1) {
+                                    // logE(tag, "pkg: " + pkg);
+                                } else {
+                                    return;
+                                }
+                            }
                             SurfaceControl.Transaction transaction = (SurfaceControl.Transaction) XposedHelpers.callMethod(param.thisObject, "getSyncTransaction");
                             SurfaceControl mSurfaceControl = (SurfaceControl) XposedHelpers.getObjectField(param.thisObject, "mSurfaceControl");
-                            // String pkg = (String) XposedHelpers.callMethod(param.thisObject, "getPackageName");
                             // String mCallingPackage = (String) XposedHelpers.getObjectField(param.thisObject, "mCallingPackage");
                             // Object getTopNonFinishingActivity = XposedHelpers.callMethod(param.thisObject, "getTopNonFinishingActivity");
                             // String pkg = null;
@@ -137,7 +188,17 @@ public class ForegroundPin extends Hook {
                     new HookAction() {
                         @Override
                         protected void before(XC_MethodHook.MethodHookParam param) {
-                            param.setResult(null);
+                            Object stack = param.args[0];
+                            if (stack != null) {
+                                String pkg = (String) callMethod(stack, "getStackPackageName");
+                                if (pkg != null) {
+                                    Integer state = hashMap.get(pkg);
+                                    if (state != null && state == 1) {
+                                        // logE(tag, "front pkg: " + pkg);
+                                        param.setResult(null);
+                                    }
+                                }
+                            }
                         }
                     }
             );
@@ -151,6 +212,17 @@ public class ForegroundPin extends Hook {
                         @Override
                         protected void before(XC_MethodHook.MethodHookParam param) {
                             Object mffas = param.args[0];
+                            if (mffas != null) {
+                                String pkg = (String) callMethod(mffas, "getStackPackageName");
+                                if (pkg != null) {
+                                    Integer state = hashMap.get(pkg);
+                                    if (state != null && state == 1) {
+                                        // logE(tag, "1 pkg: " + pkg);
+                                    } else {
+                                        return;
+                                    }
+                                }
+                            }
                             Object activityRecord = callMethod(XposedHelpers.getObjectField(mffas, "mTask"),
                                     "getTopNonFinishingActivity");
                             /*遵循安卓日志*/
@@ -179,6 +251,17 @@ public class ForegroundPin extends Hook {
                         @Override
                         protected void before(MethodHookParam param) {
                             Object mffas = param.args[0];
+                            if (mffas != null) {
+                                String pkg = (String) callMethod(mffas, "getStackPackageName");
+                                if (pkg != null) {
+                                    Integer state = hashMap.get(pkg);
+                                    if (state != null && state == 1) {
+                                        // logE(tag, "2 pkg: " + pkg);
+                                    } else {
+                                        return;
+                                    }
+                                }
+                            }
                             Object mGestureListener = getObjectField(param.thisObject, "mGestureListener");
                             if ((boolean) callMethod(mffas, "isInFreeFormMode")) {
                                 callMethod(mGestureListener, "startFullScreenFromFreeFormAnimation", mffas);
@@ -215,5 +298,13 @@ public class ForegroundPin extends Hook {
             );
 
         }
+    }
+
+    private String getPin(Context context) {
+        String string = Settings.Secure.getString(context.getContentResolver(), "foreground_pin_param");
+        if (string == null) {
+            logE(tag, "Get Settings is null!!");
+        }
+        return string;
     }
 }
