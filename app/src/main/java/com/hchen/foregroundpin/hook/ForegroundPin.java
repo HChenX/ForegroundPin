@@ -16,7 +16,7 @@
 
  * Copyright (C) 2023-2024 ForegroundPin Contributions
  */
-package com.hchen.foregroundpin.pinhook;
+package com.hchen.foregroundpin.hook;
 
 import android.util.Log;
 import android.view.SurfaceControl;

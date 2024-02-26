@@ -19,7 +19,7 @@
 package com.hchen.foregroundpin;
 
 import com.hchen.foregroundpin.mode.Hook;
-import com.hchen.foregroundpin.pinhook.ForegroundPin;
+import com.hchen.foregroundpin.hook.ForegroundPin;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
