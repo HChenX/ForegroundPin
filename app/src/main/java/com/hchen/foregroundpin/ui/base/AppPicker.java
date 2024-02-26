@@ -14,7 +14,6 @@ import android.widget.ListView;
 import com.hchen.foregroundpin.R;
 import com.hchen.foregroundpin.callback.IAppListView;
 import com.hchen.foregroundpin.utils.ToastHelper;
-import com.hchen.foregroundpin.utils.settings.SettingsData;
 import com.hchen.foregroundpin.utils.settings.SettingsHelper;
 
 import java.util.ArrayList;
@@ -34,7 +33,6 @@ public class AppPicker implements IAppListView {
 
     public AppPicker(Activity activity) {
         handler = new Handler(activity.getMainLooper());
-        hashMap.clear();
         listView = activity.findViewById(R.id.app_list);
         appDataAdapter = new AppDataAdapter(activity, R.layout.user_app, appDataList);
         listView.setAdapter(appDataAdapter);
@@ -68,6 +66,7 @@ public class AppPicker implements IAppListView {
     @Override
     public void search(Context context, String keyword) {
         listView.setVisibility(View.VISIBLE);
+        hashMap.clear();
         executorService.submit(new Runnable() {
             @Override
             public void run() {

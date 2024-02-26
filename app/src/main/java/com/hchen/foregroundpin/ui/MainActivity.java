@@ -1,8 +1,11 @@
 package com.hchen.foregroundpin.ui;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.Settings;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.widget.EditText;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +19,7 @@ import com.hchen.foregroundpin.utils.shell.ShellInit;
 public class MainActivity extends AppCompatActivity {
     private String keyword = null;
     private Handler handler;
+    private AppPicker appPicker;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -35,7 +39,42 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
         );
-        new AppPicker(this).search(this, keyword);
+        appPicker = new AppPicker(this);
+        appPicker.search(this, keyword);
+        initEditView(this);
+    }
+
+    /*@Override
+    public void onBackPressed() {
+        if (keyword == null || keyword.isEmpty()) {
+            super.onBackPressed();
+        } else {
+            keyword = "";
+            EditText editText = findViewById(R.id.search_txt);
+            editText.setText(keyword);
+            appPicker.search(this,keyword);
+        }
+    }*/
+
+    public void initEditView(Context context) {
+        EditText editText = findViewById(R.id.search_txt);
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable input) {
+                keyword = input.toString();
+                appPicker.search(context, keyword);
+            }
+        });
     }
 
     @Override
