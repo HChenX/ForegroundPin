@@ -13,8 +13,12 @@ import android.widget.ListView;
 
 import com.hchen.foregroundpin.R;
 import com.hchen.foregroundpin.callback.IAppListView;
+import com.hchen.foregroundpin.utils.ToastHelper;
+import com.hchen.foregroundpin.utils.settings.SettingsData;
+import com.hchen.foregroundpin.utils.settings.SettingsHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -26,9 +30,11 @@ public class AppPicker implements IAppListView {
     private final Handler handler;
     private final List<AppData> appDataList = new ArrayList<>();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final HashMap<String, Integer> hashMap = new HashMap<>();
 
     public AppPicker(Activity activity) {
         handler = new Handler(activity.getMainLooper());
+        hashMap.clear();
         listView = activity.findViewById(R.id.app_list);
         appDataAdapter = new AppDataAdapter(activity, R.layout.user_app, appDataList);
         listView.setAdapter(appDataAdapter);
@@ -38,9 +44,22 @@ public class AppPicker implements IAppListView {
                 AppData appData = appDataList.get((int) id);
                 CheckBox checkBox = view.findViewById(R.id.check_box);
                 if (checkBox.isChecked()) {
-                    checkBox.setChecked(false);
+                    boolean result = SettingsHelper.removeData(activity.getApplicationContext(), appData.packageName);
+                    if (result) {
+                        // appDataAdapter.initData(null, appData.packageName);
+                        appDataAdapter.hashMap.remove(appData.packageName);
+                        checkBox.setChecked(false);
+                    } else
+                        ToastHelper.makeText(activity.getApplicationContext(), "关闭: " + appData.label + " 失败！");
                 } else {
-                    checkBox.setChecked(true);
+                    boolean result = SettingsHelper.addData(activity.getApplicationContext(), appData.packageName);
+                    if (!result) {
+                        ToastHelper.makeText(activity.getApplicationContext(), "开启: " + appData.label + " 失败！");
+                    } else {
+                        // appDataAdapter.initData(new SettingsData(appData.packageName).toJSON(), null);
+                        appDataAdapter.hashMap.put(appData.packageName, "on");
+                        checkBox.setChecked(true);
+                    }
                 }
             }
         });
@@ -83,6 +102,12 @@ public class AppPicker implements IAppListView {
             appData.icon = pk.activityInfo.applicationInfo.loadIcon(packageManager);
             appData.label = pk.activityInfo.applicationInfo.loadLabel(packageManager).toString();
             appData.packageName = pk.activityInfo.applicationInfo.packageName;
+            Integer added = hashMap.get(appData.packageName);
+            if (added == null || added != 1) {
+                hashMap.put(appData.packageName, 1);
+            } else {
+                continue;
+            }
             if (appData.label.toLowerCase().contains(str.toLowerCase())) {
                 list.add(appData);
             }
@@ -94,5 +119,4 @@ public class AppPicker implements IAppListView {
     public void hide() {
         listView.setVisibility(View.GONE);
     }
-
 }

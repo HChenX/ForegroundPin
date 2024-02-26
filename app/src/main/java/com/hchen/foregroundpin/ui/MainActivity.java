@@ -8,9 +8,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.hchen.foregroundpin.R;
-import com.hchen.foregroundpin.callback.IThreadWrite;
 import com.hchen.foregroundpin.ui.base.AppPicker;
-import com.hchen.foregroundpin.utils.SettingsHelper;
+import com.hchen.foregroundpin.utils.ToastHelper;
+import com.hchen.foregroundpin.utils.settings.SettingsHelper;
 import com.hchen.foregroundpin.utils.shell.ShellInit;
 
 public class MainActivity extends AppCompatActivity {
@@ -29,7 +29,9 @@ public class MainActivity extends AppCompatActivity {
                     boolean result = ShellInit.getShell().run("pm grant " + getPackageName()
                             + " android.permission.WRITE_SECURE_SETTINGS").sync().isResult();
                     if (result) {
-                        Settings.Secure.putString(getContentResolver(), "foreground_pin_param", "[]");
+                        SettingsHelper.init(this);
+                    } else {
+                        ToastHelper.makeText(this, "获取必要权限失败！模块可能无法正常工作！");
                     }
                 })
         );

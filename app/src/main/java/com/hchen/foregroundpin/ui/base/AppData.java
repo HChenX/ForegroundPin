@@ -18,7 +18,6 @@
  */
 package com.hchen.foregroundpin.ui.base;
 
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 
 public class AppData {
