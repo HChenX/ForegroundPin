@@ -66,6 +66,8 @@ public class ShellExec {
     private final DataOutputStream os;
     private static IPassCommands pass0;
     private static IPassCommands pass1;
+    private Error mError;
+    private OutPut mOutPut;
     private final ArrayList<String> outPut = new ArrayList<>();
     private final ArrayList<String> error = new ArrayList<>();
     private final ArrayList<String> cList = new ArrayList<>();
@@ -74,6 +76,8 @@ public class ShellExec {
     private final boolean init;
     private boolean destroy;
     private boolean appending = false;
+    private boolean isFilter = false;
+    private boolean noRoot = false;
     protected int setResult = -1;
     private int count = 1;
 
@@ -124,8 +128,9 @@ public class ShellExec {
         try {
             OutPut.setOutputListen(listen);
             Error.setOutputListen(listen);
+            Check.setOutputListen(listen);
             this.result = result;
-            boolean run = command != null && !("".equals(command));
+            boolean need = command != null && !("".equals(command));
             process = Runtime.getRuntime().exec(root ? "su" : "sh");
             // 注意处理
             if (root) {
@@ -138,17 +143,15 @@ public class ShellExec {
                 check.start();
             }
             os = new DataOutputStream(process.getOutputStream());
-            if (run) {
-                write(command);
-            }
+            if (need) write(command);
             if (result) {
-                Error error = new Error(process.getErrorStream(), this, listen != null);
-                OutPut output = new OutPut(process.getInputStream(), this, listen != null);
+                mError = new Error(process.getErrorStream(), this, listen != null);
+                mOutPut = new OutPut(process.getInputStream(), this, listen != null);
                 clear();
                 pass(command);
-                error.start();
-                output.start();
-                if (run) done(0);
+                mError.start();
+                mOutPut.start();
+                if (need) done(0);
             }
             init = true;
             destroy = false;
@@ -167,6 +170,7 @@ public class ShellExec {
      */
     public synchronized ShellExec run(String command) {
         if (!init) return this;
+        if (noRoot) return this;
         if (destroy) throw new RuntimeException("This shell has been destroyed!");
         if (appending) {
             throw new RuntimeException("Shell is in append mode!");
@@ -195,6 +199,7 @@ public class ShellExec {
      */
     public synchronized ShellExec add(String command) {
         if (!init) return this;
+        if (noRoot) return this;
         if (destroy) throw new RuntimeException("This shell has been destroyed!");
         appending = true;
         clear();
@@ -217,6 +222,7 @@ public class ShellExec {
      */
     public synchronized ShellExec over() {
         if (!init) return this;
+        if (noRoot) return this;
         if (destroy) throw new RuntimeException("This shell has been destroyed!");
         appending = false;
         if (result) {
@@ -235,6 +241,7 @@ public class ShellExec {
      */
     public synchronized ShellExec sync() {
         if (!init) return this;
+        if (noRoot) return this;
         if (destroy) throw new RuntimeException("This shell has been destroyed!");
         if (appending) {
             throw new RuntimeException("Shell is in append mode!");
@@ -266,13 +273,25 @@ public class ShellExec {
     }
 
     /**
+     * 返回是否拥有 Root 权限。
+     * 具有滞后性。
+     *
+     * @return 是否拥有 Root 权限
+     */
+    public synchronized boolean isRoot() {
+        return !noRoot;
+    }
+
+    /**
      * 使进程崩溃，正常情况不要手动调用。
      */
-    protected synchronized void error() {
-        // 只在非销毁状态下抛错
-        if (!destroy) {
-            throw new RuntimeException("Shell process exited abnormally, possibly due to lack of Root permission!!");
+    protected synchronized void cancelSync() {
+        try {
+            this.notify();
+        } catch (IllegalMonitorStateException e) {
         }
+        close();
+        // throw new RuntimeException("Shell process exited abnormally, possibly due to lack of Root permission!!");
     }
 
     private void clear() {
@@ -332,6 +351,7 @@ public class ShellExec {
 
     private void done(int count) {
         try {
+            isFilter = true;
             os.writeBytes("result=$?; string=\"The execution of command <" + count + "> is complete. Return value: <$result>\"; " +
                     "if [[ $result != 0 ]]; then echo $string 1>&2; else echo $string 2>/dev/null; fi");
             // os.writeBytes("echo \"The execution of command <" + count + "> is complete. Return value: <$?>\" 1>&2 2>&1");
@@ -357,6 +377,12 @@ public class ShellExec {
             result = process.waitFor();
             process.destroy();
             os.close();
+            if (mError != null && mOutPut != null) {
+                mError.interrupt();
+                mOutPut.interrupt();
+                mOutPut = null;
+                mError = null;
+            }
         } catch (IOException e) {
             Log.logSE(TAG, "ShellExec close E", e);
         } catch (InterruptedException f) {
@@ -367,7 +393,7 @@ public class ShellExec {
     }
 
     private void log(String log) {
-        Log.logI(TAG, log);
+        Log.logSI(TAG, log);
     }
 
     protected interface IPassCommands {
@@ -375,12 +401,17 @@ public class ShellExec {
     }
 
     private static class Check extends Thread {
-        final Process process;
-        final ShellExec shellExec;
+        private final Process process;
+        private final ShellExec shellExec;
+        private static IResult mIResult;
 
         public Check(Process process, ShellExec shellExec) {
             this.process = process;
             this.shellExec = shellExec;
+        }
+
+        public static void setOutputListen(IResult iResult) {
+            mIResult = iResult;
         }
 
         @Override
@@ -396,7 +427,11 @@ public class ShellExec {
                     shellExec.notify();
                 } catch (IllegalMonitorStateException e) {
                 }
-                shellExec.error();
+                if (!shellExec.isDestroy()) {
+                    if (mIResult != null) mIResult.error("No Root!");
+                    shellExec.noRoot = true;
+                    shellExec.cancelSync();
+                }
             }
         }
     }
@@ -426,32 +461,17 @@ public class ShellExec {
         @Override
         public void run() {
             boolean use = mIResult != null;
+            Filter filter = new Filter(shellExec, contrast, pattern, command, mIResult, use, true);
             try (BufferedReader br = new BufferedReader(new InputStreamReader(mInput))) {
                 String line;
+                if (Thread.currentThread().isInterrupted()) {
+                    log("OutPut thread has been terminated!");
+                    return;
+                }
                 while ((line = br.readLine()) != null) {
                     // Log.LogI(TAG, "out: " + line);
-                    if (line.contains(contrast)) {
-                        Matcher matcher = pattern.matcher(line);
-                        if (matcher.find()) {
-                            String count = matcher.group(1);
-                            String result = matcher.group(2);
-                            if (result != null && count != null) {
-                                if (use) {
-                                    mIResult.result(command.passCommands.get(Integer.parseInt(count)),
-                                            Integer.parseInt(result));
-                                    mIResult.readOutput("Finish!!", true);
-                                }
-                                shellExec.setResult = Integer.parseInt(result);
-                                synchronized (shellExec) {
-                                    try {
-                                        shellExec.notify();
-                                    } catch (IllegalMonitorStateException e) {
-                                    }
-                                }
-                                continue;
-                            }
-                        }
-                    }
+                    if (filter.filter(line))
+                        continue;
                     shellExec.outPut.add(line);
                     if (use) mIResult.readOutput(line, false);
                 }
@@ -460,9 +480,8 @@ public class ShellExec {
             }
         }
 
-
         private void log(String log) {
-            Log.logI(TAG, log);
+            Log.logSI(TAG, log);
         }
     }
 
@@ -471,9 +490,11 @@ public class ShellExec {
         private final ShellExec shellExec;
         private final Pattern pattern;
         private final Command command;
+        private final String contrast;
         private static IResult mIResult;
 
         public Error(InputStream inputStream, ShellExec shellExec, boolean listen) {
+            contrast = "The execution of command <";
             pattern = Pattern.compile(".*<(\\d+)>.*<(\\d+)>.*");
             if (listen) command = new Command(1);
             else command = null;
@@ -488,28 +509,17 @@ public class ShellExec {
         @Override
         public void run() {
             boolean use = mIResult != null;
+            Filter filter = new Filter(shellExec, contrast, pattern, command, mIResult, use, false);
             try (BufferedReader br = new BufferedReader(new InputStreamReader(mInput))) {
                 String line;
+                if (Thread.currentThread().isInterrupted()) {
+                    log("Error thread has been terminated!");
+                    return;
+                }
                 while ((line = br.readLine()) != null) {
                     // Log.LogI(TAG, "error: " + line);
-                    Matcher matcher = pattern.matcher(line);
-                    if (matcher.find()) {
-                        String count = matcher.group(1);
-                        String result = matcher.group(2);
-                        if (result != null && count != null) {
-                            if (use)
-                                mIResult.result(command.passCommands.get(Integer.parseInt(count)),
-                                        Integer.parseInt(result));
-                            shellExec.setResult = Integer.parseInt(result);
-                            synchronized (shellExec) {
-                                try {
-                                    shellExec.notify();
-                                } catch (IllegalMonitorStateException e) {
-                                }
-                            }
-                            continue;
-                        }
-                    }
+                    if (filter.filter(line))
+                        continue;
                     shellExec.error.add(line);
                     if (use) mIResult.readError(line);
                 }
@@ -521,7 +531,39 @@ public class ShellExec {
         }
 
         private void log(String log) {
-            Log.logI(TAG, log);
+            Log.logSI(TAG, log);
+        }
+    }
+
+    private record Filter(ShellExec shellExec, String contrast, Pattern pattern,
+                          Command command, IResult mIResult, boolean use, boolean finish) {
+        public boolean filter(String line) {
+            if (shellExec.isFilter) {
+                if (line.contains(contrast)) {
+                    Matcher matcher = pattern.matcher(line);
+                    if (matcher.find()) {
+                        String count = matcher.group(1);
+                        String result = matcher.group(2);
+                        if (result != null && count != null) {
+                            if (use) {
+                                mIResult.result(command.passCommands.get(Integer.parseInt(count)),
+                                        Integer.parseInt(result));
+                                if (finish) mIResult.readOutput("Finish!!", true);
+                            }
+                            shellExec.setResult = Integer.parseInt(result);
+                            synchronized (shellExec) {
+                                try {
+                                    shellExec.notify();
+                                } catch (IllegalMonitorStateException e) {
+                                }
+                            }
+                            shellExec.isFilter = false;
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
         }
     }
 

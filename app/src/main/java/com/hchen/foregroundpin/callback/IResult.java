@@ -25,4 +25,12 @@ public interface IResult {
      */
     default void result(String command, int result) {
     }
+
+    /**
+     * 无 Root 权限时的报错回调。
+     *
+     * @param reason 原因
+     */
+    default void error(String reason) {
+    }
 }

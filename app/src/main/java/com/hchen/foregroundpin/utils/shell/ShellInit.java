@@ -45,6 +45,9 @@ public class ShellInit {
 
     public static ShellExec getShell() {
         if (mShell != null) {
+            if (!mShell.isRoot()) {
+                return mShell;
+            }
             if (mShell.isDestroy()) {
                 Log.logSW(TAG, "The current shell has been destroyed, please try creating it again!");
                 mShell = new ShellExec(true, true, mResult);
@@ -63,6 +66,9 @@ public class ShellInit {
 
     public static boolean ready() {
         if (mShell != null) {
+            if (!mShell.isRoot()) {
+                return false;
+            }
             if (mShell.isDestroy()) {
                 init(mResult);
             }
