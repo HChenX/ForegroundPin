@@ -11,9 +11,9 @@ public class InitApplication extends Application {
         super.onCreate();
         DialogX.init(this);
         DialogX.globalStyle = new IOSStyle();
-        // DialogX.autoShowInputKeyboard = true;
-        // DialogX.cancelable = false;
-        // DialogX.useHaptic = true;
-        DialogX.autoRunOnUIThread = false;
+        DialogX.autoShowInputKeyboard = true;
+        DialogX.cancelable = false;
+        DialogX.useHaptic = true;
+        // DialogX.autoRunOnUIThread = false;
     }
 }

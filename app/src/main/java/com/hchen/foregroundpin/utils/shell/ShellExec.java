@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * 调用示例:
  * <pre> {@code
  * Example 1:
- * new ShellExec("ls", true, true, new ShellUtils.ICommandOutPut() {
+ * new ShellExec("ls", true, true, new IResult() {
  *             @Override
  *             public void readOutput(String out, boolean finish) {
  *                 Log.LogI(TAG, "out: " + out + " finish: " + finish);
@@ -156,7 +156,7 @@ public class ShellExec {
             init = true;
             destroy = false;
         } catch (IOException e) {
-            throw new RuntimeException("ShellExec boot failed!! E: " + e);
+            throw new RuntimeException("ShellExec boot failed!!\n" + e);
             // Log.logSE(TAG, "ShellExec E", e);
             // init = false;
         }
@@ -186,7 +186,7 @@ public class ShellExec {
                 count = count + 1;
             }
         } catch (IOException e) {
-            Log.logSE(TAG, "ShellExec run E", e);
+            Log.logSE(TAG, "The shell command is executed!", e);
         }
         return this;
     }
@@ -207,10 +207,10 @@ public class ShellExec {
             write(command);
             if (result) {
                 cList.add(command);
-                count = count + 1;
+                // count = count + 1;
             }
         } catch (IOException e) {
-            Log.logSE(TAG, "ShellExec append E", e);
+            Log.logSE(TAG, "Error appending shell command!", e);
         }
         return this;
     }
@@ -228,6 +228,7 @@ public class ShellExec {
         if (result) {
             pass(cList.toString());
             done(count);
+            count = count + 1;
         }
         return this;
     }
@@ -249,7 +250,7 @@ public class ShellExec {
         try {
             this.wait();
         } catch (InterruptedException e) {
-            Log.logSE(TAG, "ShellExec sync E", e);
+            Log.logSE(TAG, "Failed to sync shell!", e);
         }
         return this;
     }
@@ -283,7 +284,7 @@ public class ShellExec {
     }
 
     /**
-     * 使进程崩溃，正常情况不要手动调用。
+     * 解除进程同步，并关闭 Shell 数据流。
      */
     protected synchronized void cancelSync() {
         try {
@@ -358,7 +359,7 @@ public class ShellExec {
             os.writeBytes("\n");
             os.flush();
         } catch (IOException e) {
-            Log.logSE(TAG, "ShellExec done E", e);
+            Log.logSE(TAG, "Error executing the end shell command!", e);
         }
     }
 
@@ -384,9 +385,9 @@ public class ShellExec {
                 mError = null;
             }
         } catch (IOException e) {
-            Log.logSE(TAG, "ShellExec close E", e);
+            Log.logSE(TAG, "Failed to close the shell data flow!", e);
         } catch (InterruptedException f) {
-            Log.logSE(TAG, "ShellExec getResult E", f);
+            Log.logSE(TAG, "Failed to get return value at the end!", f);
         }
         destroy = true;
         return result;
@@ -420,7 +421,7 @@ public class ShellExec {
             try {
                 result = process.waitFor(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-                Log.logSE(TAG, "Shell Check run E", e);
+                Log.logSE(TAG, "Failed while checking shell status!", e);
             }
             if (result) {
                 try {
@@ -476,7 +477,9 @@ public class ShellExec {
                     if (use) mIResult.readOutput(line, false);
                 }
             } catch (IOException e) {
-                Log.logSE(TAG, "Shell OutPut run E", e);
+                Log.logSE(TAG, "Error reading stdd-output stream data!", e);
+            } catch (NumberFormatException f) {
+                Log.logSE(TAG, "Failed to get the return value in the stdout stream!", f);
             }
         }
 
@@ -524,9 +527,9 @@ public class ShellExec {
                     if (use) mIResult.readError(line);
                 }
             } catch (IOException e) {
-                Log.logSE(TAG, "Shell Error run E", e);
+                Log.logSE(TAG, "Failed to read standard error stream data!", e);
             } catch (NumberFormatException f) {
-                Log.logSE(TAG, "Shell get result E", f);
+                Log.logSE(TAG, "Failed to get return value in standard error flow!", f);
             }
         }
 
@@ -537,7 +540,7 @@ public class ShellExec {
 
     private record Filter(ShellExec shellExec, String contrast, Pattern pattern,
                           Command command, IResult mIResult, boolean use, boolean finish) {
-        public boolean filter(String line) {
+        public boolean filter(String line) throws NumberFormatException {
             if (shellExec.isFilter) {
                 if (line.contains(contrast)) {
                     Matcher matcher = pattern.matcher(line);
