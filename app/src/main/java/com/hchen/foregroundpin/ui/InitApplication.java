@@ -12,7 +12,7 @@ public class InitApplication extends Application {
         DialogX.init(this);
         DialogX.globalStyle = new IOSStyle();
         DialogX.autoShowInputKeyboard = true;
-        DialogX.cancelable = false;
+        // DialogX.cancelable = false;
         DialogX.useHaptic = true;
         // DialogX.autoRunOnUIThread = false;
     }

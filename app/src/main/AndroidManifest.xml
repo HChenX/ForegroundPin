@@ -30,11 +30,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".ui.SettingActivity"
-            android:exported="true"
-            android:theme="@style/Theme.Pin.NoActionBar"></activity>
-
         <meta-data
             android:name="xposedscope"
             android:resource="@array/hook_app" />

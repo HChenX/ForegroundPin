@@ -1,7 +1,6 @@
 package com.hchen.foregroundpin.ui;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -92,11 +91,8 @@ public class MainActivity extends AppCompatActivity implements IResult {
                         return false;
                     })
                     .setOtherButton("关于模块", (dialog, v) -> {
-                        Intent intent = new Intent();
-                        intent.setClass(MainActivity.this, SettingActivity.class);
-                        startActivity(intent);
                         dialog.dismiss();
-                        // about();
+                        about();
                         return false;
                     })
                     .show();
@@ -107,10 +103,11 @@ public class MainActivity extends AppCompatActivity implements IResult {
 
     private void about() {
         SettingsHelper.threadWrite(() -> handler.post(() -> FullScreenDialog.show(
-                new OnBindView<FullScreenDialog>(R.layout.activity_main) {
+                new OnBindView<FullScreenDialog>(R.layout.activity_about) {
                     @Override
                     public void onBind(FullScreenDialog dialog, View v) {
-                        dialog.setDeviceRadius(15);
+                        dialog.setRadius(50);
+                        dialog.setHideZoomBackground(true);
                         dialog.setOnBackPressedListener(dialog1 -> {
                             dialog1.dismiss();
                             return false;

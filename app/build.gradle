@@ -92,7 +92,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.11.0'
 
     /*DialogX*/
-    def dialogx_version = "0.0.50.beta9"
+    def dialogx_version = "0.0.50.beta10"
     // implementation "com.kongzue.dialogx:DialogX:${dialogx_version}"
     implementation "com.github.kongzue.DialogX:DialogX:${dialogx_version}"
     // 主题
