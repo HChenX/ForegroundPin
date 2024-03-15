@@ -31,11 +31,6 @@
         <include layout="@layout/activity_filter" />
         <include layout="@layout/user_app_list" />
 
-        <include layout="@layout/running_app_list" />
-
-
-
-
     </com.google.android.material.appbar.AppBarLayout>
 <!--    <include layout="@layout/loading"/>-->
 

@@ -100,11 +100,12 @@ public class MainActivity extends AppCompatActivity implements IResult {
                                 .setOkTextInfo(new TextInfo().setFontColor(Color.RED).setFontSize(15))
                                 .setCancelTextInfo(new TextInfo().setFontSize(15))
                                 .setOkButton("确定重启", (messageDialog, view) -> {
-                                    ToastHelper.makeText(MainActivity.this, "按下确定");
+                                    ShellInit.getShell().run("reboot");
+                                    // ToastHelper.makeText(MainActivity.this, "按下确定");
                                     return false;
                                 })
                                 .setCancelButton("取消重启", (messageDialog, view) -> {
-                                    ToastHelper.makeText(MainActivity.this, "按下取消");
+                                    ToastHelper.makeText(MainActivity.this, "已经取消重启");
                                     return false;
                                 }).show();
                         return false;
@@ -123,14 +124,18 @@ public class MainActivity extends AppCompatActivity implements IResult {
                                         - 用于使贴边小窗保持前台！
                                         - 我真的不会写UI，就这样吧~
 
-                                        模块开发者：
+                                        - 模块开发者：
                                         @焕晨HChen
 
-                                        感谢名单：
+                                        - 感谢名单：
                                         Hyper Hook 方法来源：
                                         @柚稚的孩纸(@zjw2017)
                                         @YifePlayte
                                         @PedroZ
+                                                                                
+                                        模块UI来源：
+                                        @myflavor
+                                                                                
                                         项目感谢：
                                         DialogX项目
                                         """
