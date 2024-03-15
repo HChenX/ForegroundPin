@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
@@ -23,9 +22,7 @@ import com.hchen.foregroundpin.utils.ToastHelper;
 import com.hchen.foregroundpin.utils.settings.SettingsHelper;
 import com.hchen.foregroundpin.utils.shell.ShellInit;
 import com.kongzue.dialogx.DialogX;
-import com.kongzue.dialogx.dialogs.FullScreenDialog;
 import com.kongzue.dialogx.dialogs.MessageDialog;
-import com.kongzue.dialogx.interfaces.OnBindView;
 import com.kongzue.dialogx.util.TextInfo;
 
 public class MainActivity extends AppCompatActivity implements IResult {
@@ -114,29 +111,38 @@ public class MainActivity extends AppCompatActivity implements IResult {
                     })
                     .setOtherButton("关于模块", (dialog, v) -> {
                         dialog.dismiss();
-                        about();
+                        MessageDialog.build()
+                                .setTitle("关于")
+                                .setTitleTextInfo(new TextInfo().setFontSize(20))
+                                .setMessageTextInfo((new TextInfo().setFontSize(15)))
+                                .setCancelable(false)
+                                .setHapticFeedbackEnabled(true)
+                                .setMessage("""
+
+                                        - 本模块由 焕晨HChen 开发。
+                                        - 用于使贴边小窗保持前台！
+                                        - 我真的不会写UI，就这样吧~
+
+                                        模块开发者：
+                                        @焕晨HChen
+
+                                        感谢名单：
+                                        Hyper Hook 方法来源：
+                                        @柚稚的孩纸(@zjw2017)
+                                        @YifePlayte
+                                        @PedroZ
+                                        项目感谢：
+                                        DialogX项目
+                                        """
+                                )
+                                .setOkButton("确定", null)
+                                .show();
                         return false;
                     })
                     .show();
 
             return true;
         });
-    }
-
-    private void about() {
-        SettingsHelper.thread(() -> handler.post(() -> FullScreenDialog.show(
-                new OnBindView<FullScreenDialog>(R.layout.activity_about) {
-                    @Override
-                    public void onBind(FullScreenDialog dialog, View v) {
-                        dialog.setRadius(50);
-                        dialog.setHideZoomBackground(true);
-                        dialog.setOnBackPressedListener(dialog1 -> {
-                            dialog1.dismiss();
-                            return false;
-                        });
-                    }
-                }))
-        );
     }
 
     /*@Override

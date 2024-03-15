@@ -50,13 +50,52 @@ public class ForegroundPin extends Hook {
             getDeclaredMethod("com.android.server.wm.MiuiFreeFormGestureController",
                     "needForegroundPin",
                     "com.android.server.wm.MiuiFreeFormActivityStack");
+            findAndHookConstructor("com.android.server.wm.MiuiFreeFormGestureController",
+                    "com.android.server.wm.ActivityTaskManagerService",
+                    "com.android.server.wm.MiuiFreeFormManagerService", Handler.class,
+                    new HookAction() {
+                        @Override
+                        protected void after(MethodHookParam param) {
+                            Object service = param.args[0];
+                            Context mContext = (Context) getObjectField(service, "mContext");
+                            if (mContext == null) return;
+                            if (!isObserver) {
+                                // logE(tag, "isObserver");
+                                ContentObserver contentObserver = new ContentObserver(new Handler(mContext.getMainLooper())) {
+                                    @Override
+                                    public void onChange(boolean selfChange, @Nullable Uri uri, int flags) {
+                                        hashMap.clear();
+                                        String data = getPin(mContext);
+                                        if (data == null) return;
+                                        ArrayList<JSONObject> jsonObjects = SettingsData.toArray(data);
+                                        for (JSONObject object : jsonObjects) {
+                                            String pkg = SettingsData.getPkg(object);
+                                            // logE(tag, "add pkg: " + pkg);
+                                            hashMap.put(pkg, 1);
+                                        }
+                                    }
+                                };
+                                mContext.getContentResolver().registerContentObserver(
+                                        Settings.Secure.getUriFor("foreground_pin_param"),
+                                        false, contentObserver);
+                                isObserver = true;
+                            }
+                        }
+                    }
+            );
+
             findAndHookMethod("com.android.server.wm.MiuiFreeFormGestureController",
                     "needForegroundPin",
                     "com.android.server.wm.MiuiFreeFormActivityStack",
                     new HookAction() {
                         @Override
                         protected void before(XC_MethodHook.MethodHookParam param) {
-                            param.setResult(true);
+                            Object mffas = param.args[0];
+                            String pkg = (String) callMethod(mffas, "getStackPackageName");
+                            Integer state = hashMap.get(pkg);
+                            if (state != null && state == 1) {
+                                param.setResult(true);
+                            }
                         }
                     }
             );
