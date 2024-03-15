@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -21,6 +22,7 @@ import com.hchen.foregroundpin.ui.base.AppPicker;
 import com.hchen.foregroundpin.utils.ToastHelper;
 import com.hchen.foregroundpin.utils.settings.SettingsHelper;
 import com.hchen.foregroundpin.utils.shell.ShellInit;
+import com.kongzue.dialogx.DialogX;
 import com.kongzue.dialogx.dialogs.FullScreenDialog;
 import com.kongzue.dialogx.dialogs.MessageDialog;
 import com.kongzue.dialogx.interfaces.OnBindView;
@@ -38,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements IResult {
         setContentView(R.layout.activity_main);
         ShellInit.init(this);
         handler = new Handler(getMainLooper());
-        SettingsHelper.threadWrite(() ->
+        SettingsHelper.thread(() ->
                 handler.post(() -> {
                     // 获取权限
                     boolean result = ShellInit.getShell().run("pm grant " + getPackageName()
@@ -68,6 +70,13 @@ public class MainActivity extends AppCompatActivity implements IResult {
                 }).show();
     }
 
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // appPicker.search(this, keyword);
+        DialogX.touchSlideTriggerThreshold = SettingsHelper.dip2px(130);
+    }
+
     private void initMenu() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         int mode = this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
@@ -88,6 +97,19 @@ public class MainActivity extends AppCompatActivity implements IResult {
                         return false;
                     })
                     .setOkButton("重启系统", (dialog, v) -> {
+                        dialog.dismiss();
+                        MessageDialog.build()
+                                .setTitle("注意")
+                                .setOkTextInfo(new TextInfo().setFontColor(Color.RED).setFontSize(15))
+                                .setCancelTextInfo(new TextInfo().setFontSize(15))
+                                .setOkButton("确定重启", (messageDialog, view) -> {
+                                    ToastHelper.makeText(MainActivity.this, "按下确定");
+                                    return false;
+                                })
+                                .setCancelButton("取消重启", (messageDialog, view) -> {
+                                    ToastHelper.makeText(MainActivity.this, "按下取消");
+                                    return false;
+                                }).show();
                         return false;
                     })
                     .setOtherButton("关于模块", (dialog, v) -> {
@@ -102,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements IResult {
     }
 
     private void about() {
-        SettingsHelper.threadWrite(() -> handler.post(() -> FullScreenDialog.show(
+        SettingsHelper.thread(() -> handler.post(() -> FullScreenDialog.show(
                 new OnBindView<FullScreenDialog>(R.layout.activity_about) {
                     @Override
                     public void onBind(FullScreenDialog dialog, View v) {

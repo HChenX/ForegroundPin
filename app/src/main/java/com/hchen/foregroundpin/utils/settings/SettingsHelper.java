@@ -1,6 +1,7 @@
 package com.hchen.foregroundpin.utils.settings;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.provider.Settings;
 
 import com.hchen.foregroundpin.callback.IThreadWrite;
@@ -30,10 +31,15 @@ public class SettingsHelper {
         shellExec.run(command).sync();
     }
 
-    public static void threadWrite(IThreadWrite threadWrite) {
+    public static void thread(IThreadWrite threadWrite) {
         ExecutorService executorService = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors());
         executorService.submit(threadWrite::thread);
+    }
+
+    public static int dip2px(float dpValue) {
+        final float scale = Resources.getSystem().getDisplayMetrics().density;
+        return (int) (dpValue * scale + 0.5f);
     }
 
     public static boolean addData(Context context, String pkg) {
