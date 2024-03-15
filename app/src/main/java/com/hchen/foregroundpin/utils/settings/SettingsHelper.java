@@ -112,6 +112,8 @@ public class SettingsHelper {
         String string = Settings.Secure.getString(context.getContentResolver(), "foreground_pin_param");
         if (string == null) {
             Log.logSE(TAG, "Get Settings is null!!");
+            setPin(context, "[]");
+            string = Settings.Secure.getString(context.getContentResolver(), "foreground_pin_param");
         }
         return string;
     }

@@ -55,8 +55,7 @@ public class MainActivity extends AppCompatActivity implements IResult {
         setContentView(R.layout.activity_main);
         ShellInit.init(this);
         handler = new Handler(getMainLooper());
-        SettingsHelper.thread(() ->
-                handler.post(() -> {
+        SettingsHelper.thread(() -> {
                     // 获取权限
                     boolean result = ShellInit.getShell().run("pm grant " + getPackageName()
                             + " android.permission.WRITE_SECURE_SETTINGS").sync().isResult();
@@ -65,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements IResult {
                     } else {
                         ToastHelper.makeText(this, "获取必要权限失败！模块可能无法正常工作！");
                     }
-                })
+                }
         );
         appPicker = new AppPicker(this);
         appPicker.search(this, keyword);
