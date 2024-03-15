@@ -59,27 +59,7 @@ public class ForegroundPin extends Hook {
                             Object service = param.args[0];
                             Context mContext = (Context) getObjectField(service, "mContext");
                             if (mContext == null) return;
-                            if (!isObserver) {
-                                // logE(tag, "isObserver");
-                                ContentObserver contentObserver = new ContentObserver(new Handler(mContext.getMainLooper())) {
-                                    @Override
-                                    public void onChange(boolean selfChange, @Nullable Uri uri, int flags) {
-                                        hashMap.clear();
-                                        String data = getPin(mContext);
-                                        if (data == null) return;
-                                        ArrayList<JSONObject> jsonObjects = SettingsData.toArray(data);
-                                        for (JSONObject object : jsonObjects) {
-                                            String pkg = SettingsData.getPkg(object);
-                                            // logE(tag, "add pkg: " + pkg);
-                                            hashMap.put(pkg, 1);
-                                        }
-                                    }
-                                };
-                                mContext.getContentResolver().registerContentObserver(
-                                        Settings.Secure.getUriFor("foreground_pin_param"),
-                                        false, contentObserver);
-                                isObserver = true;
-                            }
+                            setObserver(mContext);
                         }
                     }
             );
@@ -110,27 +90,7 @@ public class ForegroundPin extends Hook {
                         protected void after(MethodHookParam param) {
                             Context mContext = (Context) getObjectField(param.thisObject, "mContext");
                             if (mContext == null) return;
-                            if (!isObserver) {
-                                // logE(tag, "isObserver");
-                                ContentObserver contentObserver = new ContentObserver(new Handler(mContext.getMainLooper())) {
-                                    @Override
-                                    public void onChange(boolean selfChange, @Nullable Uri uri, int flags) {
-                                        hashMap.clear();
-                                        String data = getPin(mContext);
-                                        if (data == null) return;
-                                        ArrayList<JSONObject> jsonObjects = SettingsData.toArray(data);
-                                        for (JSONObject object : jsonObjects) {
-                                            String pkg = SettingsData.getPkg(object);
-                                            // logE(tag, "add pkg: " + pkg);
-                                            hashMap.put(pkg, 1);
-                                        }
-                                    }
-                                };
-                                mContext.getContentResolver().registerContentObserver(
-                                        Settings.Secure.getUriFor("foreground_pin_param"),
-                                        false, contentObserver);
-                                isObserver = true;
-                            }
+                            setObserver(mContext);
                         }
                     }
             );
@@ -336,6 +296,35 @@ public class ForegroundPin extends Hook {
                     }
             );
 
+        }
+    }
+
+    private void setObserver(Context mContext) {
+        if (!isObserver) {
+            // logE(tag, "isObserver");
+            setHashMap(mContext);
+            ContentObserver contentObserver = new ContentObserver(new Handler(mContext.getMainLooper())) {
+                @Override
+                public void onChange(boolean selfChange, @Nullable Uri uri, int flags) {
+                    setHashMap(mContext);
+                }
+            };
+            mContext.getContentResolver().registerContentObserver(
+                    Settings.Secure.getUriFor("foreground_pin_param"),
+                    false, contentObserver);
+            isObserver = true;
+        }
+    }
+
+    private void setHashMap(Context mContext) {
+        hashMap.clear();
+        String data = getPin(mContext);
+        if (data == null) return;
+        ArrayList<JSONObject> jsonObjects = SettingsData.toArray(data);
+        for (JSONObject object : jsonObjects) {
+            String pkg = SettingsData.getPkg(object);
+            // logE(tag, "add pkg: " + pkg);
+            hashMap.put(pkg, 1);
         }
     }
 
