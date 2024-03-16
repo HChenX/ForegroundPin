@@ -103,7 +103,12 @@ public class SettingsHelper {
     }
 
     public static boolean setPin(Context context, String value) {
-        boolean result = Settings.Secure.putString(context.getContentResolver(), "foreground_pin_param", value);
+        boolean result = false;
+        try {
+            result = Settings.Secure.putString(context.getContentResolver(), "foreground_pin_param", value);
+        } catch (Throwable e) {
+
+        }
         if (!result) Log.logSE(TAG, "Put Settings E!!");
         return result;
     }
@@ -114,6 +119,9 @@ public class SettingsHelper {
             Log.logSE(TAG, "Get Settings is null!!");
             setPin(context, "[]");
             string = Settings.Secure.getString(context.getContentResolver(), "foreground_pin_param");
+            if (string == null) {
+                string = "[]";
+            }
         }
         return string;
     }

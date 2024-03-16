@@ -76,7 +76,14 @@ public class MainActivity extends AppCompatActivity implements IResult {
     public void error(String reason) {
         MessageDialog.build()
                 .setTitle("警告")
-                .setMessage("未给予模块Root权限无法正常使用！")
+                .setCancelable(false)
+                .setHapticFeedbackEnabled(true)
+                .setMessage("""
+                        未给予模块Root权限无法正常使用！
+                        不给模块Root用什么用？
+                        要不是安卓权限限制我会申请吗？
+                        不相信模块就不要用。
+                        """)
                 .setOkButton("确定", (dialog, v) -> {
                     ShellInit.destroy();
                     finish();
