@@ -231,8 +231,8 @@ public class ForegroundPin extends Hook {
                                     return;
                                 }
                             }
-                            SurfaceControl.Transaction transaction = (SurfaceControl.Transaction) XposedHelpers.callMethod(param.thisObject, "getSyncTransaction");
-                            SurfaceControl mSurfaceControl = (SurfaceControl) XposedHelpers.getObjectField(param.thisObject, "mSurfaceControl");
+                            SurfaceControl.Transaction transaction = (SurfaceControl.Transaction) callMethod(param.thisObject, "getSyncTransaction");
+                            SurfaceControl mSurfaceControl = (SurfaceControl) getObjectField(param.thisObject, "mSurfaceControl");
                             // String mCallingPackage = (String) XposedHelpers.getObjectField(param.thisObject, "mCallingPackage");
                             // Object getTopNonFinishingActivity = XposedHelpers.callMethod(param.thisObject, "getTopNonFinishingActivity");
                             // String pkg = null;
@@ -242,28 +242,28 @@ public class ForegroundPin extends Hook {
                                     pkg = activityInfo.applicationInfo.packageName;
                                 }
                             }*/
-                            int taskId = (int) XposedHelpers.callMethod(param.thisObject, "getRootTaskId");
-                            Object mWmService = XposedHelpers.getObjectField(param.thisObject, "mWmService");
-                            Object mAtmService = XposedHelpers.getObjectField(mWmService, "mAtmService");
-                            Object mMiuiFreeFormManagerService = XposedHelpers.getObjectField(mAtmService, "mMiuiFreeFormManagerService");
-                            Object mffs = XposedHelpers.callMethod(mMiuiFreeFormManagerService, "getMiuiFreeFormActivityStack", taskId);
-                            boolean isVisible = (boolean) XposedHelpers.callMethod(param.thisObject, "isVisible");
-                            boolean isAnimating = (boolean) XposedHelpers.callMethod(param.thisObject, "isAnimating", 7);
+                            int taskId = (int) callMethod(param.thisObject, "getRootTaskId");
+                            Object mWmService = getObjectField(param.thisObject, "mWmService");
+                            Object mAtmService = getObjectField(mWmService, "mAtmService");
+                            Object mMiuiFreeFormManagerService = getObjectField(mAtmService, "mMiuiFreeFormManagerService");
+                            Object mffs = callMethod(mMiuiFreeFormManagerService, "getMiuiFreeFormActivityStack", taskId);
+                            boolean isVisible = (boolean) callMethod(param.thisObject, "isVisible");
+                            boolean isAnimating = (boolean) callMethod(param.thisObject, "isAnimating", 7);
                             boolean inPinMode = false;
                             if (mffs != null) {
-                                inPinMode = (boolean) XposedHelpers.callMethod(mffs, "inPinMode");
+                                inPinMode = (boolean) callMethod(mffs, "inPinMode");
                             }
                             boolean mLastSurfaceVisibility = (boolean) XposedHelpers.getAdditionalInstanceField(param.thisObject, "mLastSurfaceVisibility");
                             if (mSurfaceControl != null && mffs != null && inPinMode) {
                                 if (!isAnimating) {
-                                    XposedHelpers.callMethod(transaction, "setVisibility", mSurfaceControl, false);
+                                    callMethod(transaction, "setVisibility", mSurfaceControl, false);
                                     XposedHelpers.setAdditionalInstanceField(param.thisObject, "mLastSurfaceVisibility", false);
                                 }
                                 // logE(tag, "setVisibility false pkg2: " + pkg + " taskid: " + taskId + " isVisble: " + isVisible
                                 // + " an: " + isAnimating + " la: " + mLastSurfaceVisibility);
                             } else if (mSurfaceControl != null && mffs != null && !inPinMode) {
                                 if (!mLastSurfaceVisibility) {
-                                    XposedHelpers.callMethod(transaction, "setVisibility", mSurfaceControl, true);
+                                    callMethod(transaction, "setVisibility", mSurfaceControl, true);
                                     XposedHelpers.setAdditionalInstanceField(param.thisObject, "mLastSurfaceVisibility", true);
                                 }
                                 // logE(tag, "setVisibility true pkg2: " + pkg + " taskid: " + taskId + " isVisble: " + isVisible + " an: " + isAnimating);

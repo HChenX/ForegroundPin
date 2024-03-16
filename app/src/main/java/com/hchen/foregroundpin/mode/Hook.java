@@ -100,7 +100,6 @@ public abstract class Hook extends Log {
         return null;
     }
 
-    /*不能处理报错的方法需要私有*/
     private Class<?> findClass(String className) {
         return findClass(className, loadPackageParam.classLoader);
     }
@@ -472,12 +471,12 @@ public abstract class Hook extends Log {
     public void checkLast(String method, Object fieldName, Object value, Object last) {
         if (value != null && last != null) {
             if (value == last || value.equals(last)) {
-                logI(tag, method + " Success! set " + fieldName + " to " + value);
+                logSI(tag, method + " Success! set " + fieldName + " to " + value);
             } else {
-                logE(tag, method + " Failed! set " + fieldName + " to " + value + " hope: " + value + " but: " + last);
+                logSE(tag, method + " Failed! set " + fieldName + " to " + value + " hope: " + value + " but: " + last);
             }
         } else {
-            logE(tag, method + " Error value: " + value + " or last: " + last + " is null");
+            logSE(tag, method + " Error value: " + value + " or last: " + last + " is null");
         }
     }
 
@@ -573,16 +572,12 @@ public abstract class Hook extends Log {
         Context context = null;
         try {
             switch (flag) {
-                case 0 -> {
+                case FLAG_ALL -> {
                     if ((context = currentApplication()) == null)
                         context = getSystemContext();
                 }
-                case 1 -> {
-                    context = currentApplication();
-                }
-                case 2 -> {
-                    context = getSystemContext();
-                }
+                case FLAG_CURRENT_APP -> context = currentApplication();
+                case FlAG_ONLY_ANDROID -> context = getSystemContext();
                 default -> {
                 }
             }
@@ -631,11 +626,11 @@ public abstract class Hook extends Log {
         }
     }
 
-    private interface IGetValue {
+    public interface IGetValue {
         Object getResult() throws Throwable;
     }
 
-    private interface ISetValue {
+    public interface ISetValue {
         void setValue() throws Throwable;
     }
 }
