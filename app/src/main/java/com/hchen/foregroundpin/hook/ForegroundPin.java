@@ -19,26 +19,15 @@
 package com.hchen.foregroundpin.hook;
 
 import android.content.Context;
-import android.database.ContentObserver;
 import android.graphics.Rect;
-import android.net.Uri;
-import android.os.Handler;
-import android.os.Message;
 import android.os.Parcel;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.SurfaceControl;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import com.hchen.foregroundpin.mode.Hook;
-import com.hchen.foregroundpin.utils.ToastHelper;
-import com.hchen.foregroundpin.utils.settings.SettingsData;
+import com.hchen.foregroundpin.utils.HangupHelper;
+import com.hchen.foregroundpin.utils.ObserverHelper;
 
-import org.json.JSONObject;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -46,12 +35,12 @@ import de.robv.android.xposed.XposedHelpers;
 
 public class ForegroundPin extends Hook {
     private boolean isObserver = false;
-    private final Hangup mHandler = new Hangup();
+    private final HangupHelper mHandler = new HangupHelper();
+    private final ObserverHelper observerHelper = new ObserverHelper();
     private boolean fail = false;
-    private static final int CANCEL_HANGUP = 0;
-    private static final int WILL_HANGUP = 1;
-    private static final int LOW_TIME_HANGUP = 2;
-    private static final HashMap<String, Integer> hangupMap = new HashMap<>();
+    private final int CANCEL_HANGUP = HangupHelper.CANCEL_HANGUP;
+    private final int WILL_HANGUP = HangupHelper.WILL_HANGUP;
+    private final int LOW_TIME_HANGUP = HangupHelper.LOW_TIME_HANGUP;
 
     private final HashMap<String, Integer> hashMap = new HashMap<>();
 
@@ -62,16 +51,20 @@ public class ForegroundPin extends Hook {
             getDeclaredMethod("com.android.server.wm.MiuiFreeFormGestureController",
                     "needForegroundPin",
                     "com.android.server.wm.MiuiFreeFormActivityStack");
-            findAndHookConstructor("com.android.server.wm.MiuiFreeFormGestureController",
-                    "com.android.server.wm.ActivityTaskManagerService",
-                    "com.android.server.wm.MiuiFreeFormManagerService", Handler.class,
+
+            findAndHookMethod("com.android.server.wm.MiuiFreeFormGestureController",
+                    "onATMSSystemReady",
                     new HookAction() {
                         @Override
                         protected void after(MethodHookParam param) {
-                            Object service = param.args[0];
-                            Context mContext = (Context) getObjectField(service, "mContext");
+                            Object mService = getObjectField(param.thisObject, "mService");
+                            Context mContext = (Context) getObjectField(mService, "mContext");
                             if (mContext == null) return;
-                            setObserver(mContext);
+                            if (!isObserver) {
+                                observerHelper.setTAG(tag);
+                                observerHelper.setObserver(mContext, hashMap, mHandler.hangupMap);
+                                isObserver = true;
+                            }
                         }
                     }
             );
@@ -82,7 +75,7 @@ public class ForegroundPin extends Hook {
                     new HookAction() {
                         @Override
                         protected void before(XC_MethodHook.MethodHookParam param) {
-                            if (findInMap(hashMap, getPackageName(param, 0))) {
+                            if (observerHelper.findInMap(hashMap, getPackageName(param, 0))) {
                                 param.setResult(true);
                                 return;
                             }
@@ -101,7 +94,10 @@ public class ForegroundPin extends Hook {
                         protected void after(MethodHookParam param) {
                             Context mContext = (Context) getObjectField(param.thisObject, "mContext");
                             if (mContext == null) return;
-                            setObserver(mContext);
+                            if (!isObserver) {
+                                observerHelper.setObserver(mContext, hashMap, mHandler.hangupMap);
+                                isObserver = true;
+                            }
                         }
                     }
             );
@@ -115,7 +111,7 @@ public class ForegroundPin extends Hook {
                             String pkg = getPackageName(param, 1);
                             Object mActivityTaskManagerService = getObjectField(param.thisObject, "mActivityTaskManagerService");
                             Context context = (Context) getObjectField(mActivityTaskManagerService, "mContext");
-                            if (findInMap(hashMap, pkg)) {
+                            if (observerHelper.findInMap(hashMap, pkg)) {
                                 int action = (int) param.args[0];
                                 if (action == 6) {
                                     fail = false;
@@ -126,7 +122,7 @@ public class ForegroundPin extends Hook {
                                     if (fail) return;
                                     removeHandler();
                                     mHandler.setContext(context);
-                                    if (!findInMap(hangupMap, pkg))
+                                    if (!observerHelper.findInMap(mHandler.hangupMap, pkg))
                                         mHandler.sendMessage(mHandler.obtainMessage(LOW_TIME_HANGUP));
                                 }
                             }
@@ -144,7 +140,7 @@ public class ForegroundPin extends Hook {
                             Object mListener = getObjectField(param.thisObject, "mListener");
                             Object mService = getObjectField(mListener, "mService");
                             Context mContext = (Context) getObjectField(mService, "mContext");
-                            if (findInMap(hashMap, pkg)) {
+                            if (observerHelper.findInMap(hashMap, pkg)) {
                                 fail = true;
                                 removeHandler();
                                 mHandler.setContext(mContext);
@@ -160,8 +156,8 @@ public class ForegroundPin extends Hook {
                         @Override
                         protected void before(MethodHookParam param) {
                             String pkg = getPackageName(param, 0);
-                            if (findInMap(hashMap, pkg)) {
-                                if (findInMap(hangupMap, pkg)) {
+                            if (observerHelper.findInMap(hashMap, pkg)) {
+                                if (observerHelper.findInMap(mHandler.hangupMap, pkg)) {
                                     Parcel obtain = Parcel.obtain();
                                     Parcel obtain1 = Parcel.obtain();
                                     obtain.writeInterfaceToken("android.app.IActivityManager");
@@ -185,9 +181,9 @@ public class ForegroundPin extends Hook {
                         @Override
                         protected void before(MethodHookParam param) {
                             String pkg = getPackageName(param, 0);
-                            if (findInMap(hashMap, pkg)) {
-                                if (findInMap(hangupMap, pkg)) {
-                                    hangupMap.remove(pkg);
+                            if (observerHelper.findInMap(hashMap, pkg)) {
+                                if (observerHelper.findInMap(mHandler.hangupMap, pkg)) {
+                                    mHandler.hangupMap.remove(pkg);
                                 }
                             }
                         }
@@ -200,7 +196,7 @@ public class ForegroundPin extends Hook {
                     new HookAction() {
                         @Override
                         protected void before(XC_MethodHook.MethodHookParam param) {
-                            if (findInMap(hashMap, getPackageName(param, 0))) {
+                            if (observerHelper.findInMap(hashMap, getPackageName(param, 0))) {
                                 // logE(tag, "back pkg: " + pkg);
                                 param.setResult(null);
                             }
@@ -279,7 +275,7 @@ public class ForegroundPin extends Hook {
                     new HookAction() {
                         @Override
                         protected void before(XC_MethodHook.MethodHookParam param) {
-                            if (findInMap(hashMap, getPackageName(param, 0))) {
+                            if (observerHelper.findInMap(hashMap, getPackageName(param, 0))) {
                                 // logE(tag, "front pkg: " + pkg);
                                 param.setResult(null);
                             }
@@ -384,60 +380,10 @@ public class ForegroundPin extends Hook {
         }
     }
 
-    public static class Hangup extends Handler {
-        Context mContext = null;
-
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            switch (msg.what) {
-                case WILL_HANGUP -> {
-                    if (!haveKey((String) msg.obj)) {
-                        hangupMap.put((String) msg.obj, 1);
-                        ToastHelper.makeText(mContext, "成功进入息屏模式");
-                    }
-                }
-                case CANCEL_HANGUP -> {
-                    hangupMap.remove((String) msg.obj);
-                    ToastHelper.makeText(mContext, "请勿移动手指");
-                }
-                case LOW_TIME_HANGUP -> {
-                    ToastHelper.makeText(mContext, "长按时间过短");
-                }
-            }
-        }
-
-        private boolean haveKey(String pkg) {
-            Integer result = hangupMap.get(pkg);
-            return result != null && result == 1;
-        }
-
-        public void setContext(Context context) {
-            mContext = context;
-        }
-    }
-
     private void removeHandler() {
         mHandler.removeMessages(WILL_HANGUP);
         mHandler.removeMessages(CANCEL_HANGUP);
-    }
-
-    private void setObserver(Context mContext) {
-        if (!isObserver) {
-            // logE(tag, "isObserver");
-            setHashMap(mContext);
-            hangupMap.clear();
-            ContentObserver contentObserver = new ContentObserver(new Handler(mContext.getMainLooper())) {
-                @Override
-                public void onChange(boolean selfChange, @Nullable Uri uri, int flags) {
-                    setHashMap(mContext);
-                    hangupMap.clear();
-                }
-            };
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.Secure.getUriFor("foreground_pin_param"),
-                    false, contentObserver);
-            isObserver = true;
-        }
+        mHandler.removeMessages(LOW_TIME_HANGUP);
     }
 
     private String getPackageName(XC_MethodHook.MethodHookParam param, int value) {
@@ -446,33 +392,5 @@ public class ForegroundPin extends Hook {
             return (String) callMethod(mffas, "getStackPackageName");
         }
         return null;
-    }
-
-    private boolean findInMap(HashMap<String, Integer> map, String pkg) {
-        if (pkg != null) {
-            Integer result = map.get(pkg);
-            return result != null && result == 1;
-        }
-        return false;
-    }
-
-    private void setHashMap(Context mContext) {
-        hashMap.clear();
-        String data = getPin(mContext);
-        if (data == null) return;
-        ArrayList<JSONObject> jsonObjects = SettingsData.toArray(data);
-        for (JSONObject object : jsonObjects) {
-            String pkg = SettingsData.getPkg(object);
-            // logE(tag, "add pkg: " + pkg);
-            hashMap.put(pkg, 1);
-        }
-    }
-
-    private String getPin(Context context) {
-        String string = Settings.Secure.getString(context.getContentResolver(), "foreground_pin_param");
-        if (string == null) {
-            logE(tag, "Get Settings is null!!");
-        }
-        return string;
     }
 }

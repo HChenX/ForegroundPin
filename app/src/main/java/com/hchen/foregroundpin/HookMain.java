@@ -18,8 +18,9 @@
  */
 package com.hchen.foregroundpin;
 
-import com.hchen.foregroundpin.mode.Hook;
 import com.hchen.foregroundpin.hook.ForegroundPin;
+import com.hchen.foregroundpin.hook.SystemUiHangup;
+import com.hchen.foregroundpin.mode.Hook;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
@@ -36,6 +37,9 @@ public class HookMain implements IXposedHookLoadPackage, IXposedHookZygoteInit {
             }
             case "com.miui.securitycenter" -> {
                 // initHook(new ShouldHeadUp(), lpparam);
+            }
+            case "com.android.systemui" -> {
+                initHook(new SystemUiHangup(), lpparam);
             }
         }
     }
