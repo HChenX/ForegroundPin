@@ -35,6 +35,7 @@ import de.robv.android.xposed.XposedHelpers;
 
 public class SystemUiHangup extends Hook {
     private boolean isObserver = false;
+    private boolean isFreeFrom = false;
     private final HangupHelper mHandler = new HangupHelper();
     private final ObserverHelper observerHelper = new ObserverHelper();
     private final int CANCEL_HANGUP = HangupHelper.CANCEL_HANGUP;
@@ -60,13 +61,27 @@ public class SystemUiHangup extends Hook {
                 }
         );
 
+        findAndHookMethod("com.android.wm.shell.miuimultiwinswitch.MiuiMultiWinTrackUtils",
+                "trackWindowControlButtonClick", Context.class,
+                "android.app.ActivityManager$RunningTaskInfo", String.class, String.class,
+                new HookAction() {
+                    @Override
+                    protected void before(MethodHookParam param) {
+                        String str = (String) param.args[2];
+                        String str1 = (String) param.args[3];
+                        if ("\u5c0f\u7a97".equals(str) && "\u5c0f\u7a97".equals(str1)) {
+                            isFreeFrom = true;
+                        }
+                    }
+                }
+        );
+
         findAndHookMethod("com.android.wm.shell.miuimultiwinswitch.miuiwindowdecor.MiuiWindowDecorViewModel$MiuiCaptionTouchEventListener",
                 "onClick", View.class,
                 new HookAction() {
                     @Override
-                    protected void before(MethodHookParam param) {
-                        int id = ((View) param.args[0]).getId();
-                        if (id == 2131364049) {
+                    protected void after(MethodHookParam param) {
+                        if (isFreeFrom) {
                             Object MiuiWindowDecorViewModel = getObjectField(param.thisObject, "this$0");
                             int mTaskId = (int) getObjectField(param.thisObject, "mTaskId");
                             SparseArray mWindowDecorByTaskId = (SparseArray) getObjectField(MiuiWindowDecorViewModel, "mWindowDecorByTaskId");
@@ -83,6 +98,7 @@ public class SystemUiHangup extends Hook {
                                         mHandler.handleMessage(mHandler.obtainMessage(WILL_HANGUP, pkg));
                                 }
                             }
+                            isFreeFrom = false;
                         }
                     }
                 }
