@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements IResult {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ShellInit.init(this);
-        handler = new Handler(getMainLooper());
+        // handler = new Handler(getMainLooper());
         SettingsHelper.thread(() -> {
                     // 获取权限
                     boolean result = ShellInit.getShell().run("pm grant " + getPackageName()
@@ -146,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements IResult {
 
                                         - 本模块由 焕晨HChen 开发。
                                         - 用于使贴边小窗保持前台！
+                                        - 和使小窗实现“息屏听剧”效果！
                                         - 我真的不会写UI，就这样吧~
 
                                         - 模块开发者：
@@ -156,11 +157,13 @@ public class MainActivity extends AppCompatActivity implements IResult {
                                         @柚稚的孩纸(@zjw2017)
                                         @YifePlayte
                                         @PedroZ
+                                        @焕晨HChen
+                                                                                
+                                        Miui Hook 方法来源：
+                                        @焕晨HChen
                                                                                 
                                         模块UI来源：
                                         @myflavor
-                                                                                
-                                        项目感谢：
                                         DialogX项目
                                         """
                                 )
