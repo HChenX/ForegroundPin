@@ -16,17 +16,17 @@
 
  * Copyright (C) 2023-2024 ForegroundPin Contributions
  */
-package com.hchen.foregroundpin.hook;
+package com.hchen.foregroundpin.hook.test;
 
-import com.hchen.foregroundpin.mode.Hook;
+import com.hchen.hooktool.BaseHC;
 
 /**
  * 这些是手机管家的气泡通知方法，暂时没有用。
  */
-public class ShouldHeadUp extends Hook {
+public class ShouldHeadUp extends BaseHC {
     @Override
     public void init() {
-        findAndHookMethod("com.miui.bubbles.services.BubblesNotificationListenerService",
+        /* findAndHookMethod("com.miui.bubbles.services.BubblesNotificationListenerService",
                 "onNotificationPosted",
                 "android.service.notification.StatusBarNotification",
                 "android.service.notification.NotificationListenerService$RankingMap",
@@ -59,7 +59,6 @@ public class ShouldHeadUp extends Hook {
                         // logE();
                     }
                 }
-        );
-
+        ); */
     }
 }

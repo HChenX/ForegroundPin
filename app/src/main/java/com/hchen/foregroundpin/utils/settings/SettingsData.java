@@ -18,7 +18,7 @@
  */
 package com.hchen.foregroundpin.utils.settings;
 
-import com.hchen.foregroundpin.mode.Log;
+import static com.hchen.hooktool.log.AndroidLog.logE;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,7 +39,7 @@ public class SettingsData {
         try {
             object.put("pkg", mPackage);
         } catch (JSONException e) {
-            Log.logSE(TAG, "toJSON", e);
+            logE(TAG, "toJSON", e);
         }
         return object;
     }
@@ -48,7 +48,7 @@ public class SettingsData {
         try {
             return jsonObject.getString("pkg");
         } catch (JSONException e) {
-            Log.logSE(TAG, "getPkg", e);
+            logE(TAG, "getPkg", e);
         }
         return "";
     }
@@ -57,7 +57,7 @@ public class SettingsData {
         try {
             jsonObject.put("pkg", pkg);
         } catch (JSONException e) {
-            Log.logSE(TAG, "getPkg", e);
+            logE(TAG, "getPkg", e);
         }
         return jsonObject;
     }
@@ -66,7 +66,7 @@ public class SettingsData {
         try {
             return new JSONObject(json);
         } catch (JSONException e) {
-            Log.logSE(TAG, "restore: " + e);
+            logE(TAG, "restore: " + e);
         }
         return new JSONObject();
     }
@@ -88,7 +88,7 @@ public class SettingsData {
             }
             return arrayList;
         } catch (JSONException e) {
-            Log.logSE(TAG, "toArray: " + e);
+            logE(TAG, "toArray: " + e);
         }
         return new ArrayList<>();
     }

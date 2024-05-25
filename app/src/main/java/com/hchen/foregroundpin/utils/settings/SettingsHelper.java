@@ -18,12 +18,13 @@
  */
 package com.hchen.foregroundpin.utils.settings;
 
+import static com.hchen.hooktool.log.AndroidLog.logE;
+
 import android.content.Context;
 import android.content.res.Resources;
 import android.provider.Settings;
 
 import com.hchen.foregroundpin.callback.IThreadWrite;
-import com.hchen.foregroundpin.mode.Log;
 import com.hchen.foregroundpin.utils.shell.ShellExec;
 import com.hchen.foregroundpin.utils.shell.ShellInit;
 
@@ -62,12 +63,12 @@ public class SettingsHelper {
 
     public static boolean addData(Context context, String pkg) {
         if (context == null || pkg == null) {
-            Log.logSE(TAG, "Context or pkg can't is null!! Can't add anything!!");
+            logE(TAG, "Context or pkg can't is null!! Can't add anything!!");
             return false;
         }
         String data = getPin(context);
         if (data == null) {
-            Log.logSE(TAG, "Data is null!!");
+            logE(TAG, "Data is null!!");
             return false;
         }
         if ("".equals(data) || "[]".equals(data)) {
@@ -81,12 +82,12 @@ public class SettingsHelper {
 
     public static boolean removeData(Context context, String pkg) {
         if (context == null || pkg == null || pkg.equals("")) {
-            Log.logSE(TAG, "Context or pkg can't is null!! Can't remove anything!!");
+            logE(TAG, "Context or pkg can't is null!! Can't remove anything!!");
             return false;
         }
         String data = getPin(context);
         if (data == null || "".equals(data) || "[]".equals(data)) {
-            Log.logSE(TAG, "No any data can remove!!");
+            logE(TAG, "No any data can remove!!");
             return false;
         }
         ArrayList<JSONObject> jsonObjects = SettingsData.toArray(data);
@@ -109,14 +110,14 @@ public class SettingsHelper {
         } catch (Throwable e) {
 
         }
-        if (!result) Log.logSE(TAG, "Put Settings E!!");
+        if (!result) logE(TAG, "Put Settings E!!");
         return result;
     }
 
     public static String getPin(Context context) {
         String string = Settings.Secure.getString(context.getContentResolver(), "foreground_pin_param");
         if (string == null) {
-            Log.logSE(TAG, "Get Settings is null!!");
+            logE(TAG, "Get Settings is null!!");
             setPin(context, "[]");
             string = Settings.Secure.getString(context.getContentResolver(), "foreground_pin_param");
             if (string == null) {

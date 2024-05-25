@@ -18,7 +18,8 @@
  */
 package com.hchen.foregroundpin.utils;
 
-import static com.hchen.foregroundpin.mode.Log.logE;
+
+import static com.hchen.hooktool.log.XposedLog.logE;
 
 import android.content.Context;
 import android.database.ContentObserver;

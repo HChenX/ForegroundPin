@@ -16,27 +16,17 @@
 
  * Copyright (C) 2023-2024 ForegroundPin Contributions
  */
-package com.hchen.foregroundpin.hook;
+package com.hchen.foregroundpin.hook.test;
 
-import static de.robv.android.xposed.callbacks.XCallback.PRIORITY_LOWEST;
-
-import android.app.ActivityManager;
-import android.graphics.Rect;
-import android.view.SurfaceControl;
-
-import com.hchen.foregroundpin.mode.Hook;
-
-import java.util.List;
-
-import de.robv.android.xposed.XposedHelpers;
+import com.hchen.hooktool.BaseHC;
 
 /**
  * 这是测试类，已经弃用的
  */
-public class Test extends Hook {
+public class Test extends BaseHC {
     @Override
     public void init() {
-        findAndHookMethod("com.android.server.wm.MiuiFreeformPinManagerService",
+        /* findAndHookMethod("com.android.server.wm.MiuiFreeformPinManagerService",
                 "hideStack", "com.android.server.wm.MiuiFreeFormActivityStack",
                 new HookAction() {
                     @Override
@@ -159,7 +149,7 @@ public class Test extends Hook {
                                                     "mController"),
                                             "mGestureListener"),
                                     "mGestureAnimator");
-                            /*尽量提升效率*/
+                             *//*尽量提升效率*//*
                             callMethod(
                                     getObjectField(param.args[0],
                                             "mLastIconLayerWindowToken"),
@@ -229,6 +219,6 @@ public class Test extends Hook {
                         param.setResult(null);
                     }
                 }
-        );
+        ); */
     }
 }

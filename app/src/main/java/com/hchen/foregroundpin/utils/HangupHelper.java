@@ -18,13 +18,13 @@
  */
 package com.hchen.foregroundpin.utils;
 
+import static com.hchen.hooktool.log.XposedLog.logE;
+
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 
 import androidx.annotation.NonNull;
-
-import com.hchen.foregroundpin.mode.Log;
 
 import java.util.HashMap;
 
@@ -42,7 +42,7 @@ public class HangupHelper extends Handler {
             case WILL_HANGUP -> {
                 if (!haveKey((String) msg.obj)) {
                     hangupMap.put((String) msg.obj, 1);
-                    Log.logE("SystemUiHangup", "obj: " + msg.obj);
+                    logE("SystemUiHangup", "obj: " + msg.obj);
                     ToastHelper.makeText(mContext, "成功进入息屏模式");
                 }
             }

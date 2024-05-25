@@ -18,10 +18,12 @@
  */
 package com.hchen.foregroundpin.utils.shell;
 
+import static com.hchen.hooktool.log.AndroidLog.logE;
+import static com.hchen.hooktool.log.AndroidLog.logI;
+
 import androidx.annotation.Nullable;
 
 import com.hchen.foregroundpin.callback.IResult;
-import com.hchen.foregroundpin.mode.Log;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -204,7 +206,7 @@ public class ShellExec {
                 count = count + 1;
             }
         } catch (IOException e) {
-            Log.logSE(TAG, "The shell command is executed!", e);
+            logE(TAG, "The shell command is executed!", e);
         }
         return this;
     }
@@ -228,7 +230,7 @@ public class ShellExec {
                 // count = count + 1;
             }
         } catch (IOException e) {
-            Log.logSE(TAG, "Error appending shell command!", e);
+            logE(TAG, "Error appending shell command!", e);
         }
         return this;
     }
@@ -268,7 +270,7 @@ public class ShellExec {
         try {
             this.wait();
         } catch (InterruptedException e) {
-            Log.logSE(TAG, "Failed to sync shell!", e);
+            logE(TAG, "Failed to sync shell!", e);
         }
         return this;
     }
@@ -377,7 +379,7 @@ public class ShellExec {
             os.writeBytes("\n");
             os.flush();
         } catch (IOException e) {
-            Log.logSE(TAG, "Error executing the end shell command!", e);
+            logE(TAG, "Error executing the end shell command!", e);
         }
     }
 
@@ -403,16 +405,16 @@ public class ShellExec {
                 mError = null;
             }
         } catch (IOException e) {
-            Log.logSE(TAG, "Failed to close the shell data flow!", e);
+            logE(TAG, "Failed to close the shell data flow!", e);
         } catch (InterruptedException f) {
-            Log.logSE(TAG, "Failed to get return value at the end!", f);
+            logE(TAG, "Failed to get return value at the end!", f);
         }
         destroy = true;
         return result;
     }
 
     private void log(String log) {
-        Log.logSI(TAG, log);
+        logI(TAG, log);
     }
 
     protected interface IPassCommands {
@@ -439,7 +441,7 @@ public class ShellExec {
             try {
                 result = process.waitFor(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-                Log.logSE(TAG, "Failed while checking shell status!", e);
+                logE(TAG, "Failed while checking shell status!", e);
             }
             if (result) {
                 try {
@@ -495,14 +497,14 @@ public class ShellExec {
                     if (use) mIResult.readOutput(line, false);
                 }
             } catch (IOException e) {
-                Log.logSE(TAG, "Error reading stdd-output stream data!", e);
+                logE(TAG, "Error reading stdd-output stream data!", e);
             } catch (NumberFormatException f) {
-                Log.logSE(TAG, "Failed to get the return value in the stdout stream!", f);
+                logE(TAG, "Failed to get the return value in the stdout stream!", f);
             }
         }
 
         private void log(String log) {
-            Log.logSI(TAG, log);
+            logI(TAG, log);
         }
     }
 
@@ -545,14 +547,14 @@ public class ShellExec {
                     if (use) mIResult.readError(line);
                 }
             } catch (IOException e) {
-                Log.logSE(TAG, "Failed to read standard error stream data!", e);
+                logE(TAG, "Failed to read standard error stream data!", e);
             } catch (NumberFormatException f) {
-                Log.logSE(TAG, "Failed to get return value in standard error flow!", f);
+                logE(TAG, "Failed to get return value in standard error flow!", f);
             }
         }
 
         private void log(String log) {
-            Log.logSI(TAG, log);
+            logI(TAG, log);
         }
     }
 
