@@ -39,8 +39,6 @@ import com.hchen.hooktool.utils.SystemSDK;
 
 import java.util.HashMap;
 
-import de.robv.android.xposed.XposedHelpers;
-
 public class ForegroundPin extends BaseHC {
     private boolean isObserver = false;
     private final HangupHelper mHandler = new HangupHelper();
@@ -163,8 +161,8 @@ public class ForegroundPin extends BaseHC {
                                     Class<?> clz1 = expandTool.findClass("android.app.ActivityManager");
                                     Object getService = expandTool.callStaticMethod(clz1, "getService");
                                     Object asBinder = expandTool.callMethod(getService, "asBinder");
-                                    int TRANSACT_ID_SET_PACKAGE_HOLD_ON = XposedHelpers.getStaticIntField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
-                                    XposedHelpers.callMethod(asBinder, "transact", TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0);
+                                    int TRANSACT_ID_SET_PACKAGE_HOLD_ON = expandTool.getStaticField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
+                                    expandTool.callMethod(asBinder, "transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
                                 }
                             }
                         }

@@ -126,7 +126,7 @@ public class SystemUiHangup extends BaseHC {
                                         ClassLoader.getSystemClassLoader());
                                 Object getService = expandTool.callStaticMethod(clz1, "getService");
                                 Object asBinder = expandTool.callMethod(getService, "asBinder");
-                                int TRANSACT_ID_SET_PACKAGE_HOLD_ON = expandTool.getField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
+                                int TRANSACT_ID_SET_PACKAGE_HOLD_ON = expandTool.getStaticField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
                                 expandTool.callMethod(asBinder, "transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
                             }
                         }

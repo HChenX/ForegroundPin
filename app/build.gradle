@@ -29,8 +29,8 @@ android {
         minSdk 30
         targetSdk 34
         //noinspection HighAppVersionCode
-        versionCode 2024031800
-        versionName "3.0"
+        versionCode 2024052500
+        versionName "3.0.1"
 
         signingConfig signingConfigs.release
         renderscriptTargetApi 21
@@ -87,7 +87,7 @@ dependencies {
     compileOnly 'de.robv.android.xposed:api:82'
 
     /*HookTool*/
-    implementation 'com.github.HChenX:HookTool:v.0.7.2'
+    implementation 'com.github.HChenX:HookTool:v.0.7.4'
 
     /*安卓*/
     implementation 'androidx.appcompat:appcompat:1.6.1'

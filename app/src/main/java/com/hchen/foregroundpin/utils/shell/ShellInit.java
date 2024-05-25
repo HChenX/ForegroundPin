@@ -18,8 +18,10 @@
  */
 package com.hchen.foregroundpin.utils.shell;
 
+import static com.hchen.hooktool.log.AndroidLog.logE;
+import static com.hchen.hooktool.log.AndroidLog.logW;
+
 import com.hchen.foregroundpin.callback.IResult;
-import com.hchen.foregroundpin.mode.Log;
 
 /**
  * 本工具默认使用 Root 启动。
@@ -46,7 +48,7 @@ public class ShellInit {
             mShell = new ShellExec(true, true, result);
             lastReady = mShell.ready();
         } catch (RuntimeException e) {
-            Log.logSE(TAG, e);
+            logE(TAG, e.toString());
         }
     }
 
@@ -67,13 +69,13 @@ public class ShellInit {
                 return mShell;
             }
             if (mShell.isDestroy()) {
-                Log.logSW(TAG, "The current shell has been destroyed, please try creating it again!");
+                logW(TAG, "The current shell has been destroyed, please try creating it again!");
                 mShell = new ShellExec(true, true, mResult);
             }
             return mShell;
         } else {
             if (lastReady) {
-                Log.logSW(TAG, "ShellExec is null!! Attempt to rewrite creation...");
+                logW(TAG, "ShellExec is null!! Attempt to rewrite creation...");
                 return new ShellExec(true, true, mResult);
             } else {
                 throw new RuntimeException("ShellExec is null!! " +
