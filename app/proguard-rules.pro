@@ -21,7 +21,9 @@
 #-renamesourcefileattribute SourceFile
 
 -keep class com.hchen.foregroundpin.HookMain
--keep class * extends com.hchen.foregroundpin.mode.Hook
+-keep class com.hchen.foregroundpin.hook.ForegroundPin
+-keep class com.hchen.foregroundpin.hook.SystemUiHangup
+
 -keep class com.kongzue.dialogx.** { *; }
 -dontwarn com.kongzue.dialogx.**
 # 额外的，建议将 android.view 也列入 keep 范围：

@@ -18,6 +18,7 @@
  */
 package com.hchen.foregroundpin.hook;
 
+import static com.hchen.hooktool.log.XposedLog.logE;
 import static com.hchen.hooktool.log.XposedLog.logW;
 
 import android.content.Context;
@@ -220,12 +221,12 @@ public class ForegroundPin extends BaseHC {
                             // String mCallingPackage = (String) XposedHelpers.getObjectField(param.thisObject, "mCallingPackage");
                             // Object getTopNonFinishingActivity = XposedHelpers.callMethod(param.thisObject, "getTopNonFinishingActivity");
                             // String pkg = null;
-                            /*if (getTopNonFinishingActivity != null) {
-                                ActivityInfo activityInfo = (ActivityInfo) XposedHelpers.getObjectField(getTopNonFinishingActivity, "info");
-                                if (activityInfo != null) {
-                                    pkg = activityInfo.applicationInfo.packageName;
-                                }
-                            }*/
+                            // if (getTopNonFinishingActivity != null) {
+                            //     ActivityInfo activityInfo = (ActivityInfo) XposedHelpers.getObjectField(getTopNonFinishingActivity, "info");
+                            //     if (activityInfo != null) {
+                            //         pkg = activityInfo.applicationInfo.packageName;
+                            //     }
+                            // }
                             int taskId = param.callMethod("getRootTaskId");
                             Object mWmService = param.getField("mWmService");
                             Object mAtmService = expandTool.getField(mWmService, "mAtmService");
@@ -277,7 +278,7 @@ public class ForegroundPin extends BaseHC {
                     .hook(new IAction() {
                         @Override
                         public void before(ParamTool param, StaticTool staticTool) {
-                            handlerHelper.sendMessageDelayed(handlerHelper.obtainMessage(TOP_WINDOW_HAS_DRAWN, param), 100);
+                            handlerHelper.sendMessageDelayed(handlerHelper.obtainMessage(TOP_WINDOW_HAS_DRAWN, param), 150);
                         }
                     })
 
@@ -287,7 +288,7 @@ public class ForegroundPin extends BaseHC {
                     .hook(new IAction() {
                         @Override
                         public void before(ParamTool param, StaticTool staticTool) {
-                            handlerHelper.sendMessageDelayed(handlerHelper.obtainMessage(TOP_WINDOW_HAS_DRAWN, param), 100);
+                            handlerHelper.sendMessageDelayed(handlerHelper.obtainMessage(TOP_WINDOW_HAS_DRAWN, param), 150);
                         }
                     });
         }
@@ -314,7 +315,25 @@ public class ForegroundPin extends BaseHC {
                 case TOP_WINDOW_HAS_DRAWN -> {
                     ParamTool param = (ParamTool) msg.obj;
                     Object mffas = param.first();
+                    Object mLock = param.getField("mLock");
                     expandTool.setField(mffas, "topWindowHasDrawn", true);
+                    try {
+                        if (mLock == null) {
+                            Object mMiuiFreeformPinManagerService = param.getField("mMiuiFreeformPinManagerService");
+                            mLock = expandTool.getField(mMiuiFreeformPinManagerService, "mLock");
+                            if (mLock != null) {
+                                synchronized (mLock) {
+                                    mLock.notifyAll();
+                                }
+                            }
+                        } else {
+                            synchronized (mLock) {
+                                mLock.notifyAll();
+                            }
+                        }
+                    } catch (Throwable e) {
+                        logE("ForegroundPin", e);
+                    }
                 }
             }
         }
