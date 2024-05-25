@@ -18,11 +18,10 @@
  */
 package com.hchen.foregroundpin.hook;
 
-import static com.hchen.hooktool.log.XposedLog.logE;
+import static com.hchen.hooktool.log.XposedLog.logI;
 
 import android.app.ActivityManager;
 import android.content.Context;
-import android.graphics.Rect;
 import android.os.Parcel;
 import android.util.SparseArray;
 import android.view.View;
@@ -118,7 +117,7 @@ public class SystemUiHangup extends BaseHC {
                             if (pkg == null) return;
                             if (observerHelper.findInMap(hashMap, pkg)) {
                                 if (observerHelper.findInMap(mHandler.hangupMap, pkg)) {
-                                    logE(TAG, "pkg: " + mHandler.hangupMap + " :" + pkg);
+                                    logI(TAG, "pkg: " + mHandler.hangupMap + " :" + pkg);
                                     Parcel obtain = Parcel.obtain();
                                     Parcel obtain1 = Parcel.obtain();
                                     obtain.writeInterfaceToken("android.app.IActivityManager");
@@ -131,12 +130,13 @@ public class SystemUiHangup extends BaseHC {
                                     Object asBinder = expandTool.callMethod(getService, "asBinder");
                                     int TRANSACT_ID_SET_PACKAGE_HOLD_ON = expandTool.getStaticField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
                                     expandTool.callMethod(asBinder, "transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
+                                    mHandler.hangupMap.remove(pkg);
                                 }
                             }
                         }
                     })
 
-                    .to("mffmph")
+                    /*.to("mffmph")
                     .getMethod("unPinFloatingWindow",
                             Rect.class, int.class, boolean.class, boolean.class, boolean.class)
                     .hook(new IAction() {
@@ -154,7 +154,7 @@ public class SystemUiHangup extends BaseHC {
                                 }
                             }
                         }
-                    });
+                    })*/;
         }
     }
 

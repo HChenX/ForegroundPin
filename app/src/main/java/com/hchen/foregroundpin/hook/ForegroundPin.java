@@ -164,11 +164,12 @@ public class ForegroundPin extends BaseHC {
                                     Object asBinder = expandTool.callMethod(getService, "asBinder");
                                     int TRANSACT_ID_SET_PACKAGE_HOLD_ON = expandTool.getStaticField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
                                     expandTool.callMethod(asBinder, "transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
+                                    mHandler.hangupMap.remove(pkg);
                                 }
                             }
                         }
                     })
-                    .getMethod("unPinFloatingWindow", "com.android.server.wm.MiuiFreeFormActivityStack",
+                    /*.getMethod("unPinFloatingWindow", "com.android.server.wm.MiuiFreeFormActivityStack",
                             float.class, float.class, boolean.class)
                     .hook(new IAction() {
                         @Override
@@ -180,7 +181,7 @@ public class ForegroundPin extends BaseHC {
                                 }
                             }
                         }
-                    })
+                    })*/
 
                     .findClass("mffgc", "com.android.server.wm.MiuiFreeFormGestureController")
                     .getMethod("moveTaskToBack",
