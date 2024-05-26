@@ -18,8 +18,6 @@
  */
 package com.hchen.foregroundpin.hook;
 
-import static com.hchen.hooktool.log.XposedLog.logI;
-
 import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Parcel;
@@ -117,7 +115,7 @@ public class SystemUiHangup extends BaseHC {
                             if (pkg == null) return;
                             if (observerHelper.findInMap(hashMap, pkg)) {
                                 if (observerHelper.findInMap(mHandler.hangupMap, pkg)) {
-                                    logI(TAG, "pkg: " + mHandler.hangupMap + " :" + pkg);
+                                    // logI(TAG, "pkg: " + mHandler.hangupMap + " :" + pkg);
                                     Parcel obtain = Parcel.obtain();
                                     Parcel obtain1 = Parcel.obtain();
                                     obtain.writeInterfaceToken("android.app.IActivityManager");
