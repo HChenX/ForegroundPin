@@ -117,19 +117,25 @@ public class MainActivity extends AppCompatActivity implements IResult {
                         dialog.dismiss();
                         return false;
                     })
-                    .setOkButton("重启系统", (dialog, v) -> {
+                    .setOkButton("重启作用域", (dialog, v) -> {
                         dialog.dismiss();
                         MessageDialog.build()
                                 .setTitle("注意")
+                                .setMessage("请选择你要重启的作用域")
                                 .setOkTextInfo(new TextInfo().setFontColor(Color.RED).setFontSize(15))
+                                .setOtherTextInfo(new TextInfo().setFontColor(Color.RED).setFontSize(15))
                                 .setCancelTextInfo(new TextInfo().setFontSize(15))
-                                .setOkButton("确定重启", (messageDialog, view) -> {
-                                    ShellInit.getShell().run("reboot");
+                                .setOkButton("系统界面", (messageDialog, view) -> {
+                                    ShellInit.getShell().run("killall -15 com.android.systemui");
                                     // ToastHelper.makeText(MainActivity.this, "按下确定");
                                     return false;
                                 })
-                                .setCancelButton("取消重启", (messageDialog, view) -> {
+                                .setCancelButton("取消", (messageDialog, view) -> {
                                     ToastHelper.makeText(MainActivity.this, "已经取消重启");
+                                    return false;
+                                }).setOtherButton("系统", (messageDialog, view) -> {
+                                    ShellInit.getShell().run("reboot");
+                                    // ToastHelper.makeText(MainActivity.this, "按下确定");
                                     return false;
                                 }).show();
                         return false;
