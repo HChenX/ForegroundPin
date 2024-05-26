@@ -29,7 +29,7 @@ android {
         minSdk 30
         targetSdk 34
         //noinspection HighAppVersionCode
-        versionCode 2024052505
+        versionCode 2024052603
         versionName "3.1"
 
         signingConfig signingConfigs.release
@@ -94,7 +94,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.12.0'
 
     /*DialogX*/
-    def dialogx_version = "0.0.50.beta11"
+    def dialogx_version = "0.0.50.beta13"
     // implementation "com.kongzue.dialogx:DialogX:${dialogx_version}"
     implementation "com.github.kongzue.DialogX:DialogX:${dialogx_version}"
     // 主题
