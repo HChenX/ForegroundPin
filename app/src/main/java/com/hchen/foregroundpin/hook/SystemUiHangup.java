@@ -86,12 +86,12 @@ public class SystemUiHangup extends BaseHC {
                             if (isFreeFrom) {
                                 Object MiuiWindowDecorViewModel = param.getField("this$0");
                                 int mTaskId = param.getField("mTaskId");
-                                SparseArray mWindowDecorByTaskId = param.getField(MiuiWindowDecorViewModel, "mWindowDecorByTaskId");
+                                SparseArray mWindowDecorByTaskId = param.to(MiuiWindowDecorViewModel).getField("mWindowDecorByTaskId");
                                 Object miuiWindowDecoration = mWindowDecorByTaskId.get(mTaskId);
                                 ActivityManager.RunningTaskInfo runningTaskInfo =
-                                        param.getField(miuiWindowDecoration, "mTaskInfo");
-                                Object mTaskInfo = param.getField(miuiWindowDecoration, "mTaskInfo");
-                                int mode = param.callMethod(mTaskInfo, "getWindowingMode");
+                                        param.to(miuiWindowDecoration).getField("mTaskInfo");
+                                Object mTaskInfo = param.to(miuiWindowDecoration).getField("mTaskInfo");
+                                int mode = param.to(mTaskInfo).callMethod("getWindowingMode");
                                 if (mode == 5) {
                                     String pkg = runningTaskInfo.baseActivity.getPackageName();
                                     if (observerHelper.findInMap(hashMap, pkg)) {
@@ -111,7 +111,7 @@ public class SystemUiHangup extends BaseHC {
                         @Override
                         public void after(ParamTool param) {
                             Object miuiFreeformModeTaskInfo = param.first();
-                            String pkg = param.callMethod(miuiFreeformModeTaskInfo, "getPackageName");
+                            String pkg = param.to(miuiFreeformModeTaskInfo).callMethod("getPackageName");
                             if (pkg == null) return;
                             if (observerHelper.findInMap(hashMap, pkg)) {
                                 if (observerHelper.findInMap(mHandler.hangupMap, pkg)) {
@@ -125,9 +125,9 @@ public class SystemUiHangup extends BaseHC {
                                     Class<?> clz1 = param.findClass("android.app.ActivityManager",
                                             ClassLoader.getSystemClassLoader());
                                     Object getService = param.callStaticMethod(clz1, "getService");
-                                    Object asBinder = param.callMethod(getService, "asBinder");
+                                    Object asBinder = param.to(getService).callMethod("asBinder");
                                     int TRANSACT_ID_SET_PACKAGE_HOLD_ON = param.getStaticField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
-                                    param.callMethod(asBinder, "transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
+                                    param.to(asBinder).callMethod("transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
                                     mHandler.hangupMap.remove(pkg);
                                 }
                             }

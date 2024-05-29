@@ -62,7 +62,7 @@ public class ForegroundPin extends BaseHC {
                         @Override
                         public void after(ParamTool param) {
                             Object mService = param.getField("mService");
-                            Context mContext = param.getField(mService, "mContext");
+                            Context mContext = param.to(mService).getField("mContext");
                             if (mContext == null) return;
                             if (!isObserver) {
                                 observerHelper.setTAG(TAG);
@@ -107,7 +107,7 @@ public class ForegroundPin extends BaseHC {
                         public void after(ParamTool param) {
                             String pkg = getPackageName(param, 1);
                             Object mActivityTaskManagerService = param.getField("mActivityTaskManagerService");
-                            Context context = param.getField(mActivityTaskManagerService, "mContext");
+                            Context context = param.to(mActivityTaskManagerService).getField("mContext");
                             if (observerHelper.findInMap(hashMap, pkg)) {
                                 int action = param.first();
                                 if (action == 6) {
@@ -134,8 +134,8 @@ public class ForegroundPin extends BaseHC {
                             if (fail) return;
                             String pkg = getPackageName(param, 1);
                             Object mListener = param.getField("mListener");
-                            Object mService = param.getField(mListener, "mService");
-                            Context mContext = param.getField(mService, "mContext");
+                            Object mService = param.to(mListener).getField("mService");
+                            Context mContext = param.to(mService).getField("mContext");
                             if (observerHelper.findInMap(hashMap, pkg)) {
                                 fail = true;
                                 removeHandler();
@@ -160,9 +160,9 @@ public class ForegroundPin extends BaseHC {
                                     Class<?> clz = param.findClass("android.os.MiuiBinderTransaction$IActivityManager");
                                     Class<?> clz1 = param.findClass("android.app.ActivityManager");
                                     Object getService = param.callStaticMethod(clz1, "getService");
-                                    Object asBinder = param.callMethod(getService, "asBinder");
+                                    Object asBinder = param.to(getService).callMethod("asBinder");
                                     int TRANSACT_ID_SET_PACKAGE_HOLD_ON = param.getStaticField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
-                                    param.callMethod(asBinder, "transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
+                                    param.to(asBinder).callMethod("transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
                                     mHandler.hangupMap.remove(pkg);
                                 }
                             }
@@ -229,26 +229,26 @@ public class ForegroundPin extends BaseHC {
                             // }
                             int taskId = param.callMethod("getRootTaskId");
                             Object mWmService = param.getField("mWmService");
-                            Object mAtmService = param.getField(mWmService, "mAtmService");
-                            Object mMiuiFreeFormManagerService = param.getField(mAtmService, "mMiuiFreeFormManagerService");
-                            Object mffs = param.callMethod(mMiuiFreeFormManagerService, "getMiuiFreeFormActivityStack", taskId);
+                            Object mAtmService = param.to(mWmService).getField("mAtmService");
+                            Object mMiuiFreeFormManagerService = param.to(mAtmService).getField("mMiuiFreeFormManagerService");
+                            Object mffs = param.to(mMiuiFreeFormManagerService).callMethod("getMiuiFreeFormActivityStack", taskId);
                             boolean isVisible = param.callMethod("isVisible");
                             boolean isAnimating = param.callMethod("isAnimating", 7);
                             boolean inPinMode = false;
                             if (mffs != null) {
-                                inPinMode = param.callMethod(mffs, "inPinMode");
+                                inPinMode = param.to(mffs).callMethod("inPinMode");
                             }
                             boolean mLastSurfaceVisibility = param.getAdditionalInstanceField("mLastSurfaceVisibility");
                             if (mSurfaceControl != null && mffs != null && inPinMode) {
                                 if (!isAnimating) {
-                                    param.callMethod(transaction, "setVisibility", new Object[]{mSurfaceControl, false});
+                                    param.to(transaction).callMethod("setVisibility", new Object[]{mSurfaceControl, false});
                                     param.setAdditionalInstanceField("mLastSurfaceVisibility", false);
                                 }
                                 // logE(tag, "setVisibility false pkg2: " + pkg + " taskid: " + taskId + " isVisble: " + isVisible
                                 // + " an: " + isAnimating + " la: " + mLastSurfaceVisibility);
                             } else if (mSurfaceControl != null && mffs != null && !inPinMode) {
                                 if (!mLastSurfaceVisibility) {
-                                    param.callMethod(transaction, "setVisibility", new Object[]{mSurfaceControl, true});
+                                    param.to(transaction).callMethod("setVisibility", new Object[]{mSurfaceControl, true});
                                     param.setAdditionalInstanceField("mLastSurfaceVisibility", true);
                                 }
                                 // logE(tag, "setVisibility true pkg2: " + pkg + " taskid: " + taskId + " isVisble: " + isVisible + " an: " + isAnimating);
@@ -303,7 +303,7 @@ public class ForegroundPin extends BaseHC {
     private String getPackageName(ParamTool param, int value) {
         Object mffas = param.getParam(value);
         if (mffas != null) {
-            return param.callMethod(mffas, "getStackPackageName");
+            return param.to(mffas).callMethod("getStackPackageName");
         }
         return null;
     }
@@ -316,11 +316,11 @@ public class ForegroundPin extends BaseHC {
                     ParamTool param = (ParamTool) msg.obj;
                     Object mffas = param.first();
                     Object mLock = param.getField("mLock");
-                    param.setField(mffas, "topWindowHasDrawn", true);
+                    param.to(mffas).setField("topWindowHasDrawn", true);
                     try {
                         if (mLock == null) {
                             Object mMiuiFreeformPinManagerService = param.getField("mMiuiFreeformPinManagerService");
-                            mLock = param.getField(mMiuiFreeformPinManagerService, "mLock");
+                            mLock = param.to(mMiuiFreeformPinManagerService).getField("mLock");
                             if (mLock != null) {
                                 synchronized (mLock) {
                                     mLock.notifyAll();
