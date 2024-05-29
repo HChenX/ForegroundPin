@@ -29,7 +29,6 @@ import com.hchen.foregroundpin.utils.ObserverHelper;
 import com.hchen.hooktool.BaseHC;
 import com.hchen.hooktool.callback.IAction;
 import com.hchen.hooktool.tool.ParamTool;
-import com.hchen.hooktool.tool.StaticTool;
 import com.hchen.hooktool.utils.SystemSDK;
 
 import java.util.HashMap;
@@ -53,7 +52,7 @@ public class SystemUiHangup extends BaseHC {
                     .getMethod("onInit")
                     .hook(new IAction() {
                         @Override
-                        public void after(ParamTool param, StaticTool staticTool) {
+                        public void after(ParamTool param) {
                             Context mContext = param.getField("mContext");
                             if (!isObserver) {
                                 mHandler.setContext(mContext);
@@ -69,7 +68,7 @@ public class SystemUiHangup extends BaseHC {
                             "android.app.ActivityManager$RunningTaskInfo", String.class, String.class)
                     .hook(new IAction() {
                         @Override
-                        public void before(ParamTool param, StaticTool staticTool) {
+                        public void before(ParamTool param) {
                             String str = param.third();
                             String str1 = param.fourth();
                             if ("\u5c0f\u7a97".equals(str) && "\u5c0f\u7a97".equals(str1)) {
@@ -83,15 +82,16 @@ public class SystemUiHangup extends BaseHC {
                     .getMethod("onClick", View.class)
                     .hook(new IAction() {
                         @Override
-                        public void after(ParamTool param, StaticTool staticTool) {
+                        public void after(ParamTool param) {
                             if (isFreeFrom) {
                                 Object MiuiWindowDecorViewModel = param.getField("this$0");
                                 int mTaskId = param.getField("mTaskId");
-                                SparseArray mWindowDecorByTaskId = expandTool.getField(MiuiWindowDecorViewModel, "mWindowDecorByTaskId");
+                                SparseArray mWindowDecorByTaskId = param.getField(MiuiWindowDecorViewModel, "mWindowDecorByTaskId");
                                 Object miuiWindowDecoration = mWindowDecorByTaskId.get(mTaskId);
                                 ActivityManager.RunningTaskInfo runningTaskInfo =
-                                        expandTool.getField(miuiWindowDecoration, "mTaskInfo");
-                                int mode = expandTool.callMethod(expandTool.getField(miuiWindowDecoration, "mTaskInfo"), "getWindowingMode");
+                                        param.getField(miuiWindowDecoration, "mTaskInfo");
+                                Object mTaskInfo = param.getField(miuiWindowDecoration, "mTaskInfo");
+                                int mode = param.callMethod(mTaskInfo, "getWindowingMode");
                                 if (mode == 5) {
                                     String pkg = runningTaskInfo.baseActivity.getPackageName();
                                     if (observerHelper.findInMap(hashMap, pkg)) {
@@ -109,9 +109,9 @@ public class SystemUiHangup extends BaseHC {
                     .getMethod("hideTask", "com.android.wm.shell.miuifreeform.MiuiFreeformModeTaskInfo")
                     .hook(new IAction() {
                         @Override
-                        public void after(ParamTool param, StaticTool staticTool) {
+                        public void after(ParamTool param) {
                             Object miuiFreeformModeTaskInfo = param.first();
-                            String pkg = expandTool.callMethod(miuiFreeformModeTaskInfo, "getPackageName");
+                            String pkg = param.callMethod(miuiFreeformModeTaskInfo, "getPackageName");
                             if (pkg == null) return;
                             if (observerHelper.findInMap(hashMap, pkg)) {
                                 if (observerHelper.findInMap(mHandler.hangupMap, pkg)) {
@@ -120,14 +120,14 @@ public class SystemUiHangup extends BaseHC {
                                     Parcel obtain1 = Parcel.obtain();
                                     obtain.writeInterfaceToken("android.app.IActivityManager");
                                     obtain.writeString(pkg);
-                                    Class<?> clz = expandTool.findClass("android.os.MiuiBinderTransaction$IActivityManager",
+                                    Class<?> clz = param.findClass("android.os.MiuiBinderTransaction$IActivityManager",
                                             ClassLoader.getSystemClassLoader());
-                                    Class<?> clz1 = expandTool.findClass("android.app.ActivityManager",
+                                    Class<?> clz1 = param.findClass("android.app.ActivityManager",
                                             ClassLoader.getSystemClassLoader());
-                                    Object getService = expandTool.callStaticMethod(clz1, "getService");
-                                    Object asBinder = expandTool.callMethod(getService, "asBinder");
-                                    int TRANSACT_ID_SET_PACKAGE_HOLD_ON = expandTool.getStaticField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
-                                    expandTool.callMethod(asBinder, "transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
+                                    Object getService = param.callStaticMethod(clz1, "getService");
+                                    Object asBinder = param.callMethod(getService, "asBinder");
+                                    int TRANSACT_ID_SET_PACKAGE_HOLD_ON = param.getStaticField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
+                                    param.callMethod(asBinder, "transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
                                     mHandler.hangupMap.remove(pkg);
                                 }
                             }
@@ -139,12 +139,12 @@ public class SystemUiHangup extends BaseHC {
                             Rect.class, int.class, boolean.class, boolean.class, boolean.class)
                     .hook(new IAction() {
                         @Override
-                        public void after(ParamTool param, StaticTool staticTool) {
+                        public void after(ParamTool param) {
                             int i = param.second();
                             Object mMiuiFreeformModeTaskRepository = param.getField("mMiuiFreeformModeTaskRepository");
                             Object miuiFreeformTaskInfo =
-                                    expandTool.callMethod(mMiuiFreeformModeTaskRepository, "getMiuiFreeformTaskInfo", i);
-                            String pkg = expandTool.callMethod(miuiFreeformTaskInfo, "getPackageName");
+                                    param.callMethod(mMiuiFreeformModeTaskRepository, "getMiuiFreeformTaskInfo", i);
+                            String pkg = param.callMethod(miuiFreeformTaskInfo, "getPackageName");
                             if (pkg == null) return;
                             if (observerHelper.findInMap(hashMap, pkg)) {
                                 if (observerHelper.findInMap(mHandler.hangupMap, pkg)) {
