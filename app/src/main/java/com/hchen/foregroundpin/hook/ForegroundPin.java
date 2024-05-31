@@ -159,9 +159,9 @@ public class ForegroundPin extends BaseHC {
                                     obtain.writeString(pkg);
                                     Class<?> clz = param.findClass("android.os.MiuiBinderTransaction$IActivityManager");
                                     Class<?> clz1 = param.findClass("android.app.ActivityManager");
-                                    Object getService = param.callStaticMethod(clz1, "getService");
+                                    Object getService = param.to(clz1).callStaticMethod("getService");
                                     Object asBinder = param.to(getService).callMethod("asBinder");
-                                    int TRANSACT_ID_SET_PACKAGE_HOLD_ON = param.getStaticField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
+                                    int TRANSACT_ID_SET_PACKAGE_HOLD_ON = param.to(clz).getStaticField("TRANSACT_ID_SET_PACKAGE_HOLD_ON");
                                     param.to(asBinder).callMethod("transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
                                     mHandler.hangupMap.remove(pkg);
                                 }
