@@ -39,6 +39,7 @@ import com.hchen.foregroundpin.ui.base.AppPicker;
 import com.hchen.foregroundpin.utils.ToastHelper;
 import com.hchen.foregroundpin.utils.settings.SettingsHelper;
 import com.hchen.foregroundpin.utils.shell.ShellInit;
+import com.hchen.hooktool.HCInit;
 import com.kongzue.dialogx.DialogX;
 import com.kongzue.dialogx.dialogs.MessageDialog;
 import com.kongzue.dialogx.util.TextInfo;
@@ -47,11 +48,14 @@ public class MainActivity extends AppCompatActivity implements IResult {
     private String keyword = null;
     private Handler handler;
     private AppPicker appPicker;
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "mForegroundPin";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        HCInit.initOther(
+                "com.hchen.foregroundpin", 
+                "mForegroundPin", HCInit.LOG_D);
         setContentView(R.layout.activity_main);
         ShellInit.init(this);
         // handler = new Handler(getMainLooper());

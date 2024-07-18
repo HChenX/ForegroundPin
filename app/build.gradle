@@ -87,7 +87,7 @@ dependencies {
     compileOnly 'de.robv.android.xposed:api:82'
 
     /*HookTool*/
-    implementation 'com.github.HChenX:HookTool:v.0.8.4'
+    implementation 'com.github.HChenX:HookTool:v.0.9.8'
 
     /*安卓*/
     implementation 'androidx.appcompat:appcompat:1.7.0'

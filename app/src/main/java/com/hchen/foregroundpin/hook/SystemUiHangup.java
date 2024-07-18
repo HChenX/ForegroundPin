@@ -28,7 +28,6 @@ import com.hchen.foregroundpin.utils.HangupHelper;
 import com.hchen.foregroundpin.utils.ObserverHelper;
 import com.hchen.hooktool.BaseHC;
 import com.hchen.hooktool.callback.IAction;
-import com.hchen.hooktool.tool.ParamTool;
 import com.hchen.hooktool.utils.SystemSDK;
 
 import java.util.HashMap;
@@ -48,50 +47,44 @@ public class SystemUiHangup extends BaseHC {
     public void init() {
         // Hyper 专用
         if (SystemSDK.isMoreHyperOSVersion(1f)) {
-            classTool.findClass("mffmgh", "com.android.wm.shell.miuifreeform.MiuiFreeformModeGestureHandler")
-                    .getMethod("onInit")
-                    .hook(new IAction() {
-                        @Override
-                        public void after(ParamTool param) {
-                            Context mContext = param.getField("mContext");
-                            if (!isObserver) {
-                                mHandler.setContext(mContext);
-                                observerHelper.setTAG(TAG);
-                                observerHelper.setObserver(mContext, hashMap, mHandler.hangupMap);
-                                isObserver = true;
-                            }
-                        }
-                    })
+            hook("com.android.wm.shell.miuifreeform.MiuiFreeformModeGestureHandler", "onInit", new IAction() {
+                @Override
+                public void after() throws Throwable {
+                    Context mContext = getThisField("mContext");
+                    if (!isObserver) {
+                        mHandler.setContext(mContext);
+                        observerHelper.setTAG(TAG);
+                        observerHelper.setObserver(mContext, hashMap, mHandler.hangupMap);
+                        isObserver = true;
+                    }
+                }
+            });
 
-                    .findClass("mmwtu", "com.android.wm.shell.miuimultiwinswitch.MiuiMultiWinTrackUtils")
-                    .getMethod("trackWindowControlButtonClick", Context.class,
-                            "android.app.ActivityManager$RunningTaskInfo", String.class, String.class)
-                    .hook(new IAction() {
+            hook("com.android.wm.shell.miuimultiwinswitch.MiuiMultiWinTrackUtils", "trackWindowControlButtonClick", Context.class,
+                    "android.app.ActivityManager$RunningTaskInfo", String.class, String.class, new IAction() {
                         @Override
-                        public void before(ParamTool param) {
-                            String str = param.third();
-                            String str1 = param.fourth();
+                        public void before() throws Throwable {
+                            String str = third();
+                            String str1 = fourth();
                             if ("\u5c0f\u7a97".equals(str) && "\u5c0f\u7a97".equals(str1)) {
                                 isFreeFrom = true;
                             }
                         }
-                    })
+                    });
 
-                    .findClass("mwdvm$mctel",
-                            "com.android.wm.shell.miuimultiwinswitch.miuiwindowdecor.MiuiWindowDecorViewModel$MiuiCaptionTouchEventListener")
-                    .getMethod("onClick", View.class)
-                    .hook(new IAction() {
+            hook("com.android.wm.shell.miuimultiwinswitch.miuiwindowdecor.MiuiWindowDecorViewModel$MiuiCaptionTouchEventListener",
+                    "onClick", View.class, new IAction() {
                         @Override
-                        public void after(ParamTool param) {
+                        public void after() throws Throwable {
                             if (isFreeFrom) {
-                                Object MiuiWindowDecorViewModel = param.getField("this$0");
-                                int mTaskId = param.getField("mTaskId");
-                                SparseArray mWindowDecorByTaskId = param.to(MiuiWindowDecorViewModel).getField("mWindowDecorByTaskId");
+                                Object MiuiWindowDecorViewModel = getThisField("this$0");
+                                int mTaskId = getThisField("mTaskId");
+                                SparseArray mWindowDecorByTaskId = getField(MiuiWindowDecorViewModel, "mWindowDecorByTaskId");
                                 Object miuiWindowDecoration = mWindowDecorByTaskId.get(mTaskId);
                                 ActivityManager.RunningTaskInfo runningTaskInfo =
-                                        param.to(miuiWindowDecoration).getField("mTaskInfo");
-                                Object mTaskInfo = param.to(miuiWindowDecoration).getField("mTaskInfo");
-                                int mode = param.to(mTaskInfo).callMethod("getWindowingMode");
+                                        getField(miuiWindowDecoration, "mTaskInfo");
+                                Object mTaskInfo = getField(miuiWindowDecoration, "mTaskInfo");
+                                int mode = callMethod(mTaskInfo, "getWindowingMode");
                                 if (mode == 5) {
                                     String pkg = runningTaskInfo.baseActivity.getPackageName();
                                     if (observerHelper.findInMap(hashMap, pkg)) {
@@ -103,15 +96,14 @@ public class SystemUiHangup extends BaseHC {
                                 isFreeFrom = false;
                             }
                         }
-                    })
+                    });
 
-                    .findClass("mffmph", "com.android.wm.shell.miuifreeform.MiuiFreeformModePinHandler")
-                    .getMethod("hideTask", "com.android.wm.shell.miuifreeform.MiuiFreeformModeTaskInfo")
-                    .hook(new IAction() {
+            hook("com.android.wm.shell.miuifreeform.MiuiFreeformModePinHandler",
+                    "hideTask", "com.android.wm.shell.miuifreeform.MiuiFreeformModeTaskInfo", new IAction() {
                         @Override
-                        public void after(ParamTool param) {
-                            Object miuiFreeformModeTaskInfo = param.first();
-                            String pkg = param.to(miuiFreeformModeTaskInfo).callMethod("getPackageName");
+                        public void after() throws Throwable {
+                            Object miuiFreeformModeTaskInfo = first();
+                            String pkg = callMethod(miuiFreeformModeTaskInfo, "getPackageName");
                             if (pkg == null) return;
                             if (observerHelper.findInMap(hashMap, pkg)) {
                                 if (observerHelper.findInMap(mHandler.hangupMap, pkg)) {
@@ -120,39 +112,19 @@ public class SystemUiHangup extends BaseHC {
                                     Parcel obtain1 = Parcel.obtain();
                                     obtain.writeInterfaceToken("android.app.IActivityManager");
                                     obtain.writeString(pkg);
-                                    Class<?> clz = param.findClass("android.os.MiuiBinderTransaction$IActivityManager",
+                                    Class<?> clz = findClass("android.os.MiuiBinderTransaction$IActivityManager",
                                             ClassLoader.getSystemClassLoader());
-                                    Class<?> clz1 = param.findClass("android.app.ActivityManager",
+                                    Class<?> clz1 = findClass("android.app.ActivityManager",
                                             ClassLoader.getSystemClassLoader());
-                                    Object getService = param.to(clz1).callStaticMethod("getService");
-                                    Object asBinder = param.to(getService).callMethod("asBinder");
-                                    int TRANSACT_ID_SET_PACKAGE_HOLD_ON = param.to(clz).getStaticField("TRANSACT_ID_SET_PACKAGE_HOLD_ON");
-                                    param.to(asBinder).callMethod("transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
+                                    Object getService = callStaticMethod(clz1, "getService");
+                                    Object asBinder = callMethod(getService, "asBinder");
+                                    int TRANSACT_ID_SET_PACKAGE_HOLD_ON = getStaticField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
+                                    callMethod(asBinder, "transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
                                     mHandler.hangupMap.remove(pkg);
                                 }
                             }
                         }
-                    })
-
-                    /*.to("mffmph")
-                    .getMethod("unPinFloatingWindow",
-                            Rect.class, int.class, boolean.class, boolean.class, boolean.class)
-                    .hook(new IAction() {
-                        @Override
-                        public void after(ParamTool param) {
-                            int i = param.second();
-                            Object mMiuiFreeformModeTaskRepository = param.getField("mMiuiFreeformModeTaskRepository");
-                            Object miuiFreeformTaskInfo =
-                                    param.callMethod(mMiuiFreeformModeTaskRepository, "getMiuiFreeformTaskInfo", i);
-                            String pkg = param.callMethod(miuiFreeformTaskInfo, "getPackageName");
-                            if (pkg == null) return;
-                            if (observerHelper.findInMap(hashMap, pkg)) {
-                                if (observerHelper.findInMap(mHandler.hangupMap, pkg)) {
-                                    mHandler.hangupMap.remove(pkg);
-                                }
-                            }
-                        }
-                    })*/;
+                    });
         }
     }
 

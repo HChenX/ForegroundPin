@@ -28,21 +28,21 @@ import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class HookMain implements IXposedHookLoadPackage, IXposedHookZygoteInit {
-    public static String modulePath;
+    public static String TAG = "mForegroundPin";
 
     @Override
     public void handleLoadPackage(LoadPackageParam lpparam) {
-        HCInit.setTAG("ForegroundPin");
+        HCInit.initOther("com.hchen.foregroundpin",
+                "mForegroundPin", HCInit.LOG_D);
+        HCInit.initLoadPackageParam(lpparam);
         switch (lpparam.packageName) {
             case "android" -> {
-                HCInit.initLoadPackageParam(lpparam);
                 initHook(new ForegroundPin());
             }
             case "com.miui.securitycenter" -> {
                 // initHook(new ShouldHeadUp(), lpparam);
             }
             case "com.android.systemui" -> {
-                HCInit.initLoadPackageParam(lpparam);
                 initHook(new SystemUiHangup());
             }
         }
@@ -54,6 +54,6 @@ public class HookMain implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
     @Override
     public void initZygote(StartupParam startupParam) {
-        modulePath = startupParam.modulePath;
+        HCInit.initStartupParam(startupParam);
     }
 }
