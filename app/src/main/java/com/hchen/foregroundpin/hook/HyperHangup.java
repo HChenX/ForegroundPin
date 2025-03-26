@@ -23,7 +23,6 @@ import android.content.Context;
 import android.os.Looper;
 import android.os.Parcel;
 import android.util.SparseArray;
-import android.view.View;
 
 import com.hchen.foregroundpin.utils.HangupHandler;
 import com.hchen.foregroundpin.utils.ModuleData;
@@ -32,7 +31,6 @@ import com.hchen.hooktool.hook.IHook;
 import com.hchen.hooktool.tool.additional.DeviceTool;
 
 public class HyperHangup extends BaseHC {
-    private boolean isFreeFrom = false;
     private final HangupHandler mHangupHandler = new HangupHandler(Looper.getMainLooper());
 
     @Override
@@ -41,7 +39,7 @@ public class HyperHangup extends BaseHC {
 
         hookMethod("com.android.wm.shell.miuimultiwinswitch.MiuiMultiWinTrackUtils",
             "trackWindowControlButtonClick",
-            Context.class, "android.app.ActivityManager$RunningTaskInfo", String.class, String.class,
+            Context.class, ActivityManager.RunningTaskInfo.class, String.class, String.class,
             new IHook() {
                 @Override
                 public void before() {
@@ -49,18 +47,7 @@ public class HyperHangup extends BaseHC {
                     String str1 = (String) getArgs(3);
 
                     if ("小窗".equals(str) && "小窗".equals(str1)) {
-                        isFreeFrom = true;
-                    }
-                }
-            }
-        );
-
-        hookMethod("com.android.wm.shell.miuimultiwinswitch.miuiwindowdecor.MiuiWindowDecorViewModel$MiuiCaptionTouchEventListener",
-            "onClick", View.class,
-            new IHook() {
-                @Override
-                public void after() {
-                    if (isFreeFrom) {
+                        Context context = (Context) getArgs(0);
                         Object MiuiWindowDecorViewModel = getThisField("this$0");
                         int mTaskId = (int) getThisField("mTaskId");
                         SparseArray<?> mWindowDecorByTaskId = (SparseArray<?>) getField(MiuiWindowDecorViewModel, "mWindowDecorByTaskId");
@@ -74,10 +61,9 @@ public class HyperHangup extends BaseHC {
                             if (ModuleData.shouldForegroundPin(packageName)) {
                                 removeHandler();
                                 if (!HangupHandler.mHangupSet.contains(packageName))
-                                    mHangupHandler.handleMessage(mHangupHandler.obtainMessage(HangupHandler.HANGUP_READY, packageName));
+                                    mHangupHandler.handleMessage(mHangupHandler.obtainMessage(HangupHandler.HANGUP_READY, new Object[]{context, packageName}));
                             }
                         }
-                        isFreeFrom = false;
                     }
                 }
             }
