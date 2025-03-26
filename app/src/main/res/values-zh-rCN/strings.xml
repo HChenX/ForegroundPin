@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">ForegroundPin</string>
+    <string name="prefs_name">ForegroundPin</string>
     <string name="app_more">贴边小窗强制前台</string>
     <string name="about">关于</string>
     <string name="search">搜索</string>
-    <string name="app_list">应用列表</string>
 </resources>

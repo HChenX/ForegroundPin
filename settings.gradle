@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "ForegroundPin"
 include ':app'
+include ':HiMiuiX'

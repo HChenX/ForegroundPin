@@ -22,7 +22,7 @@
 
 -keep class com.hchen.foregroundpin.HookMain
 -keep class com.hchen.foregroundpin.hook.ForegroundPin
--keep class com.hchen.foregroundpin.hook.SystemUiHangup
+-keep class com.hchen.foregroundpin.hook.HyperHangup
 
 -keep class com.kongzue.dialogx.** { *; }
 -dontwarn com.kongzue.dialogx.**

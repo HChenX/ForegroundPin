@@ -16,8 +16,26 @@
 
  * Copyright (C) 2023-2024 ForegroundPin Contributions
  */
-package com.hchen.foregroundpin.callback;
+package com.hchen.foregroundpin.ui;
 
-public interface IThreadWrite {
-    void thread();
+import com.hchen.foregroundpin.BuildConfig;
+import com.hchen.hooktool.HCInit;
+import com.hchen.hooktool.tool.additional.PrefsTool;
+
+public class Application extends android.app.Application {
+    private static final String TAG = "mForegroundPin";
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        HCInit.initBasicData(
+            new HCInit.BasicData()
+                .setModulePackageName(BuildConfig.APPLICATION_ID)
+                .setPrefsName("ForegroundPin")
+                .setTag(TAG)
+                .setLogLevel(HCInit.LOG_D)
+        );
+        PrefsTool.prefs(this);
+    }
 }

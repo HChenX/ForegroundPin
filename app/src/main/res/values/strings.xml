@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">ForegroundPin</string>
+    <string name="prefs_name">ForegroundPin</string>
     <string name="app_more">Welt freeform force the front desk</string>
     <string name="about">About</string>
     <string name="search">search</string>
-    <string name="app_list">List of applications</string>
 </resources>

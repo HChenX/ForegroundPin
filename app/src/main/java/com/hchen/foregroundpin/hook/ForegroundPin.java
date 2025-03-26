@@ -18,311 +18,192 @@
  */
 package com.hchen.foregroundpin.hook;
 
-import static com.hchen.hooktool.log.XposedLog.logE;
-import static com.hchen.hooktool.log.XposedLog.logW;
-
-import android.content.Context;
-import android.graphics.Rect;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
-import android.os.Parcel;
 import android.view.SurfaceControl;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-import com.hchen.foregroundpin.utils.HangupHelper;
-import com.hchen.foregroundpin.utils.ObserverHelper;
+import com.hchen.foregroundpin.utils.ModuleData;
 import com.hchen.hooktool.BaseHC;
-import com.hchen.hooktool.callback.IAction;
-import com.hchen.hooktool.utils.SystemSDK;
-
-import java.util.HashMap;
+import com.hchen.hooktool.hook.IHook;
+import com.hchen.hooktool.tool.additional.DeviceTool;
 
 public class ForegroundPin extends BaseHC {
-    private boolean isObserver = false;
-    private final HangupHelper mHandler = new HangupHelper();
-    private final HandlerHelper handlerHelper = new HandlerHelper();
-    private final ObserverHelper observerHelper = new ObserverHelper();
-    private boolean fail = false;
-    private final int CANCEL_HANGUP = HangupHelper.CANCEL_HANGUP;
-    private final int WILL_HANGUP = HangupHelper.WILL_HANGUP;
-    private final int LOW_TIME_HANGUP = HangupHelper.LOW_TIME_HANGUP;
+    private final HandlerHelper handlerHelper = new HandlerHelper(Looper.getMainLooper());
     private static final int TOP_WINDOW_HAS_DRAWN = 1;
-
-    private final HashMap<String, Integer> hashMap = new HashMap<>();
 
     @Override
     public void init() {
-        if (SystemSDK.isMoreHyperOSVersion(1f)) {
-            /*Hyper*/
-            chain("com.android.server.wm.MiuiFreeFormGestureController",
-                    method("onATMSSystemReady")
-                            .hook(new IAction() {
-                                @Override
-                                public void after() throws Throwable {
-                                    Object mService = getThisField("mService");
-                                    Context mContext = getField(mService, "mContext");
-                                    if (mContext == null) return;
-                                    if (!isObserver) {
-                                        observerHelper.setTAG(TAG);
-                                        observerHelper.setObserver(mContext, hashMap, mHandler.hangupMap);
-                                        isObserver = true;
-                                    }
-                                }
-                            })
-
-                            .method("needForegroundPin", "com.android.server.wm.MiuiFreeFormActivityStack")
-                            .hook(new IAction() {
-                                @Override
-                                public void before() throws Throwable {
-                                    if (observerHelper.findInMap(hashMap, getPackageName(this, 0))) {
-                                        setResult(true);
-                                        return;
-                                    }
-                                    setResult(false);
-                                }
-                            })
+        if (DeviceTool.isMoreHyperOSVersion(1f)) {
+            hookMethod("com.android.server.wm.MiuiFreeFormGestureController",
+                "needForegroundPin",
+                "com.android.server.wm.MiuiFreeFormActivityStack",
+                new IHook() {
+                    @Override
+                    public void after() {
+                        String packageName = getPackageName(getArgs(0));
+                        if (ModuleData.shouldForegroundPin(packageName)) {
+                            setResult(true);
+                            return;
+                        }
+                        setResult(false);
+                    }
+                }
             );
         } else {
-            logW(TAG, "Hyper UnForegroundPin E, if you is Miui don't worry.");
-            /*Miui*/
-            hook("com.android.server.am.ActivityManagerService", "systemReady", Runnable.class,
-                    "com.android.server.utils.TimingsTraceAndSlog", new IAction() {
-                        @Override
-                        public void after() throws Throwable {
-                            Context mContext = getThisField("mContext");
-                            if (mContext == null) return;
-                            if (!isObserver) {
-                                observerHelper.setObserver(mContext, hashMap, mHandler.hangupMap);
-                                isObserver = true;
-                            }
-                        }
-                    });
+            hookMethod("com.android.server.wm.MiuiFreeformPinManagerService",
+                "lambda$unPinFloatingWindow$0$com-android-server-wm-MiuiFreeformPinManagerService",
+                "com.android.server.wm.MiuiFreeFormActivityStack",
+                float.class, float.class, boolean.class,
+                "com.android.server.wm.DisplayContent",
+                "com.android.server.wm.MiuiFreeFormFloatIconInfo",
+                new IHook() {
+                    @Override
+                    public void before() {
+                        handlerHelper.sendMessageDelayed(
+                            handlerHelper.obtainMessage(
+                                TOP_WINDOW_HAS_DRAWN,
+                                new Object[]{getArgs(0), thisObject()}
+                            ),
+                            150
+                        );
+                    }
+                }
+            );
 
-            hook("com.android.server.wm.MiuiFreeFormManagerService", "dispatchFreeFormStackModeChanged",
-                    int.class, "com.android.server.wm.MiuiFreeFormActivityStack",
-                    new IAction() {
-                        @Override
-                        public void after() throws Throwable {
-                            String pkg = getPackageName(this, 1);
-                            Object mActivityTaskManagerService = getThisField("mActivityTaskManagerService");
-                            Context context = getField(mActivityTaskManagerService, "mContext");
-                            if (observerHelper.findInMap(hashMap, pkg)) {
-                                int action = first();
-                                if (action == 6) {
-                                    fail = false;
-                                    removeHandler();
-                                    mHandler.setContext(context);
-                                    mHandler.sendMessageDelayed(mHandler.obtainMessage(WILL_HANGUP, pkg), 1000);
-                                } else if (action == 7) {
-                                    if (fail) return;
-                                    removeHandler();
-                                    mHandler.setContext(context);
-                                    if (!observerHelper.findInMap(mHandler.hangupMap, pkg))
-                                        mHandler.sendMessage(mHandler.obtainMessage(LOW_TIME_HANGUP));
-                                }
-                            }
-                        }
-                    });
-
-            hook("com.android.server.wm.MiuiFreeFormWindowMotionHelper",
-                    "setLeashPositionAndScale", Rect.class, "com.android.server.wm.MiuiFreeFormActivityStack"
-                    , new IAction() {
-                        @Override
-                        public void after() throws Throwable {
-                            if (fail) return;
-                            String pkg = getPackageName(this, 1);
-                            Object mListener = getThisField("mListener");
-                            Object mService = getField(mListener, "mService");
-                            Context mContext = getField(mService, "mContext");
-                            if (observerHelper.findInMap(hashMap, pkg)) {
-                                fail = true;
-                                removeHandler();
-                                mHandler.setContext(mContext);
-                                mHandler.sendMessage(mHandler.obtainMessage(CANCEL_HANGUP));
-                            }
-                        }
-                    });
-
-            chain("com.android.server.wm.MiuiFreeformPinManagerService", method(
-                    "hideStack", "com.android.server.wm.MiuiFreeFormActivityStack")
-                    .hook(new IAction() {
-                        @Override
-                        public void before() throws Throwable {
-                            String pkg = getPackageName(this, 0);
-                            if (observerHelper.findInMap(hashMap, pkg)) {
-                                if (observerHelper.findInMap(mHandler.hangupMap, pkg)) {
-                                    Parcel obtain = Parcel.obtain();
-                                    Parcel obtain1 = Parcel.obtain();
-                                    obtain.writeInterfaceToken("android.app.IActivityManager");
-                                    obtain.writeString(pkg);
-                                    Class<?> clz = findClass("android.os.MiuiBinderTransaction$IActivityManager");
-                                    Class<?> clz1 = findClass("android.app.ActivityManager");
-                                    Object getService = callStaticMethod(clz1, "getService");
-                                    Object asBinder = callMethod(getService, "asBinder");
-                                    int TRANSACT_ID_SET_PACKAGE_HOLD_ON = getStaticField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
-                                    callMethod(asBinder, "transact", new Object[]{TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0});
-                                    mHandler.hangupMap.remove(pkg);
-                                }
-                            }
-                        }
-                    })
-
-                    .method("lambda$unPinFloatingWindow$0$com-android-server-wm-MiuiFreeformPinManagerService",
-                            "com.android.server.wm.MiuiFreeFormActivityStack",
-                            float.class, float.class, boolean.class, "com.android.server.wm.DisplayContent",
-                            "com.android.server.wm.MiuiFreeFormFloatIconInfo")
-                    .hook(new IAction() {
-                        @Override
-                        public void before() throws Throwable {
-                            handlerHelper.sendMessageDelayed(handlerHelper.obtainMessage(TOP_WINDOW_HAS_DRAWN, this), 150);
-                        }
-                    }));
-
-
-            chain("com.android.server.wm.MiuiFreeFormGestureController", method(
-                    "moveTaskToBack",
-                    "com.android.server.wm.MiuiFreeFormActivityStack")
+            chain("com.android.server.wm.MiuiFreeFormGestureController",
+                method("moveTaskToBack", "com.android.server.wm.MiuiFreeFormActivityStack")
                     .hook(
-                            new IAction() {
-                                @Override
-                                public void before() throws Throwable {
-                                    if (observerHelper.findInMap(hashMap, getPackageName(this, 0))) {
-                                        // logE(tag, "back pkg: " + pkg);
-                                        setResult(null);
-                                    }
+                        new IHook() {
+                            @Override
+                            public void before() {
+                                if (ModuleData.shouldForegroundPin(getPackageName(getArgs(0)))) {
+                                    setResult(null);
                                 }
                             }
+                        }
                     )
 
-                    .method("moveTaskToFront",
-                            "com.android.server.wm.MiuiFreeFormActivityStack")
-                    .hook(new IAction() {
+                    .method("moveTaskToFront", "com.android.server.wm.MiuiFreeFormActivityStack")
+                    .hook(new IHook() {
                         @Override
-                        public void before() throws Throwable {
-                            if (observerHelper.findInMap(hashMap, getPackageName(this, 0))) {
-                                // logE(tag, "front pkg: " + pkg);
+                        public void before() {
+                            if (ModuleData.shouldForegroundPin(getPackageName(getArgs(0)))) {
                                 setResult(null);
                             }
                         }
                     })
 
                     .method("lambda$startFullscreenFromFreeform$2$com-android-server-wm-MiuiFreeFormGestureController",
-                            "com.android.server.wm.MiuiFreeFormActivityStack")
-                    .hook(new IAction() {
+                        "com.android.server.wm.MiuiFreeFormActivityStack")
+                    .hook(new IHook() {
                         @Override
-                        public void before() throws Throwable {
-                            handlerHelper.sendMessageDelayed(handlerHelper.obtainMessage(TOP_WINDOW_HAS_DRAWN, this), 150);
+                        public void before() {
+                            handlerHelper.sendMessageDelayed(
+                                handlerHelper.obtainMessage(
+                                    TOP_WINDOW_HAS_DRAWN,
+                                    new Object[]{getArgs(0), thisObject()}
+                                ),
+                                150
+                            );
                         }
                     })
             );
 
 
-            chain("com.android.server.wm.Task", anyConstructor()
-                    .hook(new IAction() {
+            chain("com.android.server.wm.Task",
+                anyConstructor()
+                    .hook(new IHook() {
                         @Override
-                        public void after() throws Throwable {
+                        public void after() {
                             setThisAdditionalInstanceField("mLastSurfaceVisibility", false);
                         }
                     })
 
                     .method("prepareSurfaces")
-                    .hook(new IAction() {
+                    .hook(new IHook() {
                         @Override
-                        public void after() throws Throwable {
-                            String pkg = callThisMethod("getPackageName");
-                            if (pkg != null) {
-                                Integer state = hashMap.get(pkg);
-                                if (state != null && state == 1) {
-                                    // logE(tag, "pkg: " + pkg);
-                                } else {
-                                    return;
-                                }
-                            }
-                            SurfaceControl.Transaction transaction = callThisMethod("getSyncTransaction");
-                            SurfaceControl mSurfaceControl = getThisField("mSurfaceControl");
-                            // String mCallingPackage = (String) XposedHelpers.getObjectField(param.thisObject, "mCallingPackage");
-                            // Object getTopNonFinishingActivity = XposedHelpers.callMethod(param.thisObject, "getTopNonFinishingActivity");
-                            // String pkg = null;
-                            // if (getTopNonFinishingActivity != null) {
-                            //     ActivityInfo activityInfo = (ActivityInfo) XposedHelpers.getObjectField(getTopNonFinishingActivity, "info");
-                            //     if (activityInfo != null) {
-                            //         pkg = activityInfo.applicationInfo.packageName;
-                            //     }
-                            // }
-                            int taskId = callThisMethod("getRootTaskId");
-                            Object mWmService = getThisField("mWmService");
-                            Object mAtmService = getField(mWmService, "mAtmService");
-                            Object mMiuiFreeFormManagerService = getField(mAtmService, "mMiuiFreeFormManagerService");
-                            Object mffs = callMethod(mMiuiFreeFormManagerService, "getMiuiFreeFormActivityStack", taskId);
-                            boolean isVisible = callThisMethod("isVisible");
-                            boolean isAnimating = callThisMethod("isAnimating", 7);
-                            boolean inPinMode = false;
-                            if (mffs != null) {
-                                inPinMode = callMethod(mffs, "inPinMode");
-                            }
-                            boolean mLastSurfaceVisibility = getThisAdditionalInstanceField("mLastSurfaceVisibility");
-                            if (mSurfaceControl != null && mffs != null && inPinMode) {
+                        public void after() {
+                            String packageName = (String) callThisMethod("getPackageName");
+                            if (!ModuleData.shouldForegroundPin(packageName))
+                                return;
+
+                            SurfaceControl.Transaction transaction = (SurfaceControl.Transaction) callThisMethod("getSyncTransaction");
+                            SurfaceControl mSurfaceControl = (SurfaceControl) getThisField("mSurfaceControl");
+                            Object mffas = callMethod(
+                                getField(
+                                    getField(
+                                        getThisField("mWmService"),
+                                        "mAtmService"
+                                    ),
+                                    "mMiuiFreeFormManagerService"
+                                ),
+                                "getMiuiFreeFormActivityStack",
+                                callThisMethod("getRootTaskId")
+                            );
+
+                            boolean isVisible = (boolean) callThisMethod("isVisible");
+                            boolean isAnimating = (boolean) callThisMethod("isAnimating", 7);
+                            boolean inPinMode = mffas != null && (boolean) callMethod(mffas, "inPinMode");
+                            boolean mLastSurfaceVisibility = (boolean) getThisAdditionalInstanceField("mLastSurfaceVisibility");
+
+                            if (mSurfaceControl != null && mffas != null && inPinMode) {
                                 if (!isAnimating) {
-                                    callMethod(transaction, "setVisibility", new Object[]{mSurfaceControl, false});
+                                    callMethod(transaction, "setVisibility", mSurfaceControl, false);
                                     setThisAdditionalInstanceField("mLastSurfaceVisibility", false);
                                 }
-                                // logE(tag, "setVisibility false pkg2: " + pkg + " taskid: " + taskId + " isVisble: " + isVisible
-                                // + " an: " + isAnimating + " la: " + mLastSurfaceVisibility);
-                            } else if (mSurfaceControl != null && mffs != null && !inPinMode) {
+                            } else if (mSurfaceControl != null && mffas != null && !inPinMode) {
                                 if (!mLastSurfaceVisibility) {
-                                    callMethod(transaction, "setVisibility", new Object[]{mSurfaceControl, true});
+                                    callMethod(transaction, "setVisibility", mSurfaceControl, true);
                                     setThisAdditionalInstanceField("mLastSurfaceVisibility", true);
                                 }
-                                // logE(tag, "setVisibility true pkg2: " + pkg + " taskid: " + taskId + " isVisble: " + isVisible + " an: " + isAnimating);
                             }
-                            // logE(tag, "sur: " + mSurfaceControl + " tra: " + transaction + " pkg: " + pkg + " inpin: " + inPinMode);
                         }
                     })
             );
         }
     }
 
-    private void removeHandler() {
-        mHandler.removeMessages(WILL_HANGUP);
-        mHandler.removeMessages(CANCEL_HANGUP);
-        mHandler.removeMessages(LOW_TIME_HANGUP);
-    }
+    @Nullable
+    private String getPackageName(Object mffas) {
+        if (mffas != null)
+            return (String) callMethod(mffas, "getStackPackageName");
 
-    private String getPackageName(IAction iAction, int value) {
-        Object mffas = iAction.getParam(value);
-        if (mffas != null) {
-            return callMethod(mffas, "getStackPackageName");
-        }
         return null;
     }
 
     private static class HandlerHelper extends Handler {
+        public HandlerHelper(@NonNull Looper looper) {
+            super(looper);
+        }
+
         @Override
         public void handleMessage(@NonNull Message msg) {
-            switch (msg.what) {
-                case TOP_WINDOW_HAS_DRAWN -> {
-                    IAction iAction = (IAction) msg.obj;
-                    Object mffas = iAction.first();
-                    Object mLock = iAction.getThisField("mLock");
-                    sCore.setField(mffas, "topWindowHasDrawn", true);
-                    try {
-                        if (mLock == null) {
-                            Object mMiuiFreeformPinManagerService = iAction.getThisField("mMiuiFreeformPinManagerService");
-                            mLock = sCore.getField(mMiuiFreeformPinManagerService, "mLock");
-                            if (mLock != null) {
-                                synchronized (mLock) {
-                                    mLock.notifyAll();
-                                }
-                            }
-                        } else {
+            if (msg.what == TOP_WINDOW_HAS_DRAWN) {
+                Object[] objs = (Object[]) msg.obj;
+                Object mffas = objs[0];
+                Object mLock = getField(objs[1], "mLock");
+                setField(mffas, "topWindowHasDrawn", true);
+
+                try {
+                    if (mLock == null) {
+                        Object mMiuiFreeformPinManagerService = getField(objs[1], "mMiuiFreeformPinManagerService");
+                        mLock = getField(mMiuiFreeformPinManagerService, "mLock");
+                        if (mLock != null) {
                             synchronized (mLock) {
                                 mLock.notifyAll();
                             }
                         }
-                    } catch (Throwable e) {
-                        logE("ForegroundPin", e);
+                    } else {
+                        synchronized (mLock) {
+                            mLock.notifyAll();
+                        }
                     }
+                } catch (Throwable e) {
+                    logE("ForegroundPin", e);
                 }
             }
         }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/dialog_rounded_background"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/miuix"
+        layout="@layout/miuix_preference" />
+
+    <include
+        android:id="@+id/hooktool"
+        layout="@layout/miuix_preference" />
+</LinearLayout>

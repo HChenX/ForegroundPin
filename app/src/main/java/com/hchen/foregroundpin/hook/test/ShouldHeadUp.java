@@ -19,46 +19,47 @@
 package com.hchen.foregroundpin.hook.test;
 
 import com.hchen.hooktool.BaseHC;
+import com.hchen.hooktool.hook.IHook;
 
 /**
- * 这些是手机管家的气泡通知方法，暂时没有用。
+ * 手机管家的气泡通知
+ *
+ * @deprecated
  */
+@Deprecated
 public class ShouldHeadUp extends BaseHC {
     @Override
     public void init() {
-        /* findAndHookMethod("com.miui.bubbles.services.BubblesNotificationListenerService",
+         hookMethod("com.miui.bubbles.services.BubblesNotificationListenerService",
                 "onNotificationPosted",
                 "android.service.notification.StatusBarNotification",
                 "android.service.notification.NotificationListenerService$RankingMap",
-                new HookAction() {
+                new IHook() {
                     @Override
-                    protected void before(MethodHookParam param) {
-                        // logE();
+                    public void before() {
                     }
                 }
         );
 
-        findAndHookMethod("com.miui.bubbles.utils.BubbleUpManager",
+        hookMethod("com.miui.bubbles.utils.BubbleUpManager",
                 "shouldHeadUp",
                 "android.service.notification.StatusBarNotification",
                 "android.service.notification.NotificationListenerService$RankingMap",
-                new HookAction() {
+                new IHook() {
                     @Override
-                    protected void before(MethodHookParam param) {
-                        // logE();
+                    public void before() {
                     }
                 }
         );
-        findAndHookMethod("com.miui.bubbles.settings.BubblesSettings",
+
+        hookMethod("com.miui.bubbles.settings.BubblesSettings",
                 "isSbnBelongToActiveBubbleApp",
                 String.class, int.class,
-                new HookAction() {
+                new IHook() {
                     @Override
-                    protected void before(MethodHookParam param) {
-                        // param.setResult(true);
-                        // logE();
+                    public void before() {
                     }
                 }
-        ); */
+        );
     }
 }

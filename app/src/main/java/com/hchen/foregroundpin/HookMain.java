@@ -18,42 +18,40 @@
  */
 package com.hchen.foregroundpin;
 
+import static com.hchen.hooktool.HCInit.LOG_D;
+
 import com.hchen.foregroundpin.hook.ForegroundPin;
-import com.hchen.foregroundpin.hook.SystemUiHangup;
-import com.hchen.hooktool.BaseHC;
+import com.hchen.foregroundpin.hook.HyperHangup;
+import com.hchen.foregroundpin.hook.MiuiHangup;
+import com.hchen.hooktool.HCEntrance;
 import com.hchen.hooktool.HCInit;
 
-import de.robv.android.xposed.IXposedHookLoadPackage;
-import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
-public class HookMain implements IXposedHookLoadPackage, IXposedHookZygoteInit {
+public class HookMain extends HCEntrance {
     public static String TAG = "mForegroundPin";
 
     @Override
-    public void handleLoadPackage(LoadPackageParam lpparam) {
-        HCInit.initOther("com.hchen.foregroundpin",
-                "mForegroundPin", HCInit.LOG_D);
-        HCInit.initLoadPackageParam(lpparam);
-        switch (lpparam.packageName) {
-            case "android" -> {
-                initHook(new ForegroundPin());
-            }
-            case "com.miui.securitycenter" -> {
-                // initHook(new ShouldHeadUp(), lpparam);
-            }
-            case "com.android.systemui" -> {
-                initHook(new SystemUiHangup());
-            }
-        }
-    }
-
-    public static void initHook(BaseHC hook) {
-        hook.onCreate();
+    public HCInit.BasicData initHC(HCInit.BasicData basicData) {
+        return basicData.setModulePackageName(BuildConfig.APPLICATION_ID)
+            .setTag("ForegroundPin")
+            .setPrefsName("ForegroundPin")
+            .setLogLevel(LOG_D)
+            .initLogExpand(new String[]{
+                "com.hchen.foregroundpin.hook"
+            });
     }
 
     @Override
-    public void initZygote(StartupParam startupParam) {
-        HCInit.initStartupParam(startupParam);
+    public void onLoadPackage(LoadPackageParam lpparam) throws Throwable {
+        switch (lpparam.packageName) {
+            case "android" -> {
+                new ForegroundPin().onLoadPackage();
+                new MiuiHangup().onLoadPackage();
+            }
+            case "com.android.systemui" -> {
+                new HyperHangup().onLoadPackage();
+            }
+        }
     }
 }

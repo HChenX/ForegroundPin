@@ -22,19 +22,17 @@ android {
     }
 
     namespace 'com.hchen.foregroundpin'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.hchen.foregroundpin"
         minSdk 30
-        targetSdk 34
+        targetSdk 35
         //noinspection HighAppVersionCode
         versionCode 2024052605
         versionName "3.1"
 
         signingConfig signingConfigs.release
-        renderscriptTargetApi 21
-        renderscriptSupportModeEnabled true
     }
 
     packagingOptions {
@@ -82,27 +80,33 @@ android {
 }
 
 dependencies {
-
     /*Xposed*/
     compileOnly 'de.robv.android.xposed:api:82'
 
     /*HookTool*/
-    implementation 'com.github.HChenX:HookTool:v.0.9.8'
+    implementation 'com.github.HChenX:HookTool:v.1.2.6'
 
     /*安卓*/
     implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.fragment:fragment:1.8.6'
+    implementation 'androidx.preference:preference:1.2.1'
+    implementation 'androidx.activity:activity:1.10.1'
+    implementation 'androidx.viewpager2:viewpager2:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
+    // implementation 'com.google.android.material:material:1.12.0'
 
     /*DialogX*/
-    def dialogx_version = "0.0.50.beta13"
+    // def dialogx_version = "0.0.50.beta33"
     // implementation "com.kongzue.dialogx:DialogX:${dialogx_version}"
-    implementation "com.github.kongzue.DialogX:DialogX:${dialogx_version}"
+    // implementation "com.github.kongzue.DialogX:DialogX:${dialogx_version}"
     // 主题
-    implementation "com.github.kongzue.DialogX:DialogXIOSStyle:${dialogx_version}"
+    // implementation "com.github.kongzue.DialogX:DialogXIOSStyle:${dialogx_version}"
     // implementation "com.github.kongzue.DialogX:DialogXKongzueStyle:${dialogx_version}"
     // implementation "com.github.kongzue.DialogX:DialogXMIUIStyle:${dialogx_version}"
     // implementation "com.github.kongzue.DialogX:DialogXMaterialYou:${dialogx_version}"
     // testImplementation 'junit:junit:4.13.2'
     // androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     // androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+    implementation(project(':HiMiuiX'))
 }

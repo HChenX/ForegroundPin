@@ -6,26 +6,24 @@
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
-
     <uses-permission
         android:name="android.permission.WRITE_SECURE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
-
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
-        android:name=".ui.InitApplication"
+        android:name=".ui.Application"
         android:allowBackup="true"
         android:icon="@drawable/pin"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Pin">
+        android:theme="@style/Theme.ForegroundPin">
 
         <activity
             android:name=".ui.MainActivity"
+            android:configChanges="density|orientation|screenSize|keyboard|locale|screenLayout"
             android:exported="true"
-            android:theme="@style/Theme.Pin.NoActionBar"
-            android:configChanges="orientation|screenSize">
+            android:theme="@style/Theme.ForegroundPin">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

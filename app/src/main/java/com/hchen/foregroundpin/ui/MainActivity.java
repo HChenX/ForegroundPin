@@ -18,88 +18,84 @@
  */
 package com.hchen.foregroundpin.ui;
 
-import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.widget.EditText;
-import android.widget.LinearLayout;
+import android.view.View;
+import android.widget.RadioGroup;
 
+import androidx.activity.EdgeToEdge;
+import androidx.activity.SystemBarStyle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.hchen.foregroundpin.R;
-import com.hchen.foregroundpin.callback.IResult;
-import com.hchen.foregroundpin.ui.base.AppPicker;
-import com.hchen.foregroundpin.utils.ToastHelper;
-import com.hchen.foregroundpin.utils.settings.SettingsHelper;
-import com.hchen.foregroundpin.utils.shell.ShellInit;
-import com.hchen.hooktool.HCInit;
-import com.kongzue.dialogx.DialogX;
-import com.kongzue.dialogx.dialogs.MessageDialog;
-import com.kongzue.dialogx.util.TextInfo;
+import com.hchen.foregroundpin.ui.fragment.HomeFragment;
+import com.hchen.foregroundpin.ui.fragment.OtherFragment;
 
-public class MainActivity extends AppCompatActivity implements IResult {
-    private String keyword = null;
-    private Handler handler;
-    private AppPicker appPicker;
-    private static final String TAG = "mForegroundPin";
+public class MainActivity extends AppCompatActivity {
+    public static final String TAG = "mForegroundPin";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        HCInit.initOther(
-                "com.hchen.foregroundpin", 
-                "mForegroundPin", HCInit.LOG_D);
-        setContentView(R.layout.activity_main);
-        ShellInit.init(this);
-        // handler = new Handler(getMainLooper());
-        SettingsHelper.thread(() -> {
-                    // 获取权限
-                    boolean result = ShellInit.getShell().run("pm grant " + getPackageName()
-                            + " android.permission.WRITE_SECURE_SETTINGS").sync().isResult();
-                    if (result) {
-                        SettingsHelper.init(this);
-                    } else {
-                        ToastHelper.makeText(this, "获取必要权限失败！模块可能无法正常工作！");
-                    }
-                }
-        );
-        appPicker = new AppPicker(this);
-        appPicker.search(this, keyword);
-        initMenu();
-        initEditView(this);
-    }
+        EdgeToEdge.enable(this, SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT), SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT));
 
-    @Override
-    public void error(String reason) {
-        MessageDialog.build()
-                .setTitle("警告")
-                .setCancelable(false)
-                .setHapticFeedbackEnabled(true)
-                .setMessage("""
-                        未给予模块Root权限无法正常使用！
-                        不给模块Root用什么用？
-                        要不是安卓权限限制我会申请吗？
-                        不相信模块就不要用。
-                        """)
-                .setOkButton("确定", (dialog, v) -> {
-                    ShellInit.destroy();
-                    finish();
-                    return false;
-                }).show();
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), new OnApplyWindowInsetsListener() {
+            @NonNull
+            @Override
+            public WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                return insets;
+            }
+        });
+
+        Fragment[] fragments = new Fragment[]{new HomeFragment(), new OtherFragment()};
+        ViewPager2 viewPager2 = findViewById(R.id.view_pager2);
+        viewPager2.setAdapter(new FragmentStateAdapter(this) {
+            @NonNull
+            @Override
+            public Fragment createFragment(int position) {
+                return fragments[position];
+            }
+
+            @Override
+            public int getItemCount() {
+                return fragments.length;
+            }
+        });
+        viewPager2.setUserInputEnabled(false);
+
+        RadioGroup radioGroup = findViewById(R.id.radio_group);
+        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if (checkedId == R.id.home) {
+                    viewPager2.setCurrentItem(0);
+                } else if (checkedId == R.id.other) {
+                    viewPager2.setCurrentItem(1);
+                }
+            }
+        });
+
+        initMenu();
     }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         // appPicker.search(this, keyword);
-        DialogX.touchSlideTriggerThreshold = SettingsHelper.dip2px(130);
     }
 
     private void initMenu() {
@@ -111,118 +107,12 @@ public class MainActivity extends AppCompatActivity implements IResult {
             toolbar.inflateMenu(R.menu.main);
         }
         toolbar.setOnMenuItemClickListener(item -> {
-            MessageDialog.build()
-                    .setTitle("设置")
-                    .setTitleTextInfo(new TextInfo().setFontSize(25))
-                    .setOkTextInfo(new TextInfo().setFontColor(Color.RED).setFontSize(15))
-                    .setOtherTextInfo(new TextInfo().setFontSize(15))
-                    .setButtonOrientation(LinearLayout.VERTICAL)
-                    .setOnBackPressedListener(dialog -> {
-                        dialog.dismiss();
-                        return false;
-                    })
-                    .setOkButton("重启作用域", (dialog, v) -> {
-                        dialog.dismiss();
-                        MessageDialog.build()
-                                .setTitle("注意")
-                                .setMessage("请选择你要重启的作用域")
-                                .setOkTextInfo(new TextInfo().setFontColor(Color.RED).setFontSize(15))
-                                .setOtherTextInfo(new TextInfo().setFontColor(Color.RED).setFontSize(15))
-                                .setCancelTextInfo(new TextInfo().setFontSize(15))
-                                .setOkButton("系统界面", (messageDialog, view) -> {
-                                    ShellInit.getShell().run("killall -15 com.android.systemui");
-                                    // ToastHelper.makeText(MainActivity.this, "按下确定");
-                                    return false;
-                                })
-                                .setCancelButton("取消", (messageDialog, view) -> {
-                                    ToastHelper.makeText(MainActivity.this, "已经取消重启");
-                                    return false;
-                                }).setOtherButton("系统", (messageDialog, view) -> {
-                                    ShellInit.getShell().run("reboot");
-                                    // ToastHelper.makeText(MainActivity.this, "按下确定");
-                                    return false;
-                                }).show();
-                        return false;
-                    })
-                    .setOtherButton("关于模块", (dialog, v) -> {
-                        dialog.dismiss();
-                        MessageDialog.build()
-                                .setTitle("关于")
-                                .setTitleTextInfo(new TextInfo().setFontSize(20))
-                                .setMessageTextInfo((new TextInfo().setFontSize(15)))
-                                .setCancelable(false)
-                                .setHapticFeedbackEnabled(true)
-                                .setMessage("""
-
-                                        - 本模块由 焕晨HChen 开发。
-                                        - 用于使贴边小窗保持前台！
-                                        - 和使小窗实现“息屏听剧”效果！
-                                        - 我真的不会写UI，就这样吧~
-
-                                        - 模块开发者：
-                                        @焕晨HChen
-
-                                        - 感谢名单：
-                                        Hyper Hook 方法来源：
-                                        @柚稚的孩纸(@zjw2017)
-                                        @YifePlayte
-                                        @PedroZ
-                                        @焕晨HChen
-                                                                                
-                                        Miui Hook 方法来源：
-                                        @焕晨HChen
-                                                                                
-                                        模块UI来源：
-                                        @myflavor
-                                        DialogX项目
-                                        """
-                                )
-                                .setOkButton("确定", null)
-                                .show();
-                        return false;
-                    })
-                    .show();
-
             return true;
-        });
-    }
-
-    /*@Override
-    public void onBackPressed() {
-        if (keyword == null || keyword.isEmpty()) {
-            super.onBackPressed();
-        } else {
-            keyword = "";
-            EditText editText = findViewById(R.id.search_txt);
-            editText.setText(keyword);
-            appPicker.search(this,keyword);
-        }
-    }*/
-
-    public void initEditView(Context context) {
-        EditText editText = findViewById(R.id.search_txt);
-        editText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable input) {
-                keyword = input.toString();
-                appPicker.search(context, keyword);
-            }
         });
     }
 
     @Override
     protected void onDestroy() {
-        ShellInit.destroy();
         super.onDestroy();
     }
 }

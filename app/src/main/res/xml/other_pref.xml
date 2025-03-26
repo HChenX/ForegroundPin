@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <com.hchen.himiuix.MiuiPreference
+        android:key="module"
+        android:layout="@layout/activity_other" />
+
+    <com.hchen.himiuix.MiuiPreferenceCategory android:title="设备信息">
+        <com.hchen.himiuix.MiuiPreference
+            android:key="info"
+            android:title="设备基本信息" />
+    </com.hchen.himiuix.MiuiPreferenceCategory>
+
+    <com.hchen.himiuix.MiuiPreferenceCategory android:title="模块设置">
+        <com.hchen.himiuix.MiuiSwitchPreference
+            android:defaultValue="true"
+            android:key="foreground_pin_main_switch"
+            android:summary="模块总开关"
+            android:title="总开关" />
+
+        <com.hchen.himiuix.MiuiSwitchPreference
+            android:defaultValue="true"
+            android:dependency="foreground_pin_main_switch"
+            android:key="foreground_pin_switch"
+            android:summary="是否启用贴边小窗前台功能"
+            android:title="贴边前台" />
+
+        <com.hchen.himiuix.MiuiSwitchPreference
+            android:defaultValue="true"
+            android:dependency="foreground_pin_main_switch"
+            android:key="hangup_switch"
+            android:summary="是否启用息屏听剧功能"
+            android:title="息屏听剧" />
+    </com.hchen.himiuix.MiuiPreferenceCategory>
+
+    <com.hchen.himiuix.MiuiPreferenceCategory android:title="开发人员">
+        <com.hchen.himiuix.MiuiPreference
+            android:icon="@drawable/ic_hchen"
+            android:summary="\@HChenX | 开发者"
+            android:title="焕晨HChen">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/HChenx" />
+        </com.hchen.himiuix.MiuiPreference>
+
+        <com.hchen.himiuix.MiuiPreference
+            android:key="contributor"
+            android:title="贡献者" />
+    </com.hchen.himiuix.MiuiPreferenceCategory>
+
+    <com.hchen.himiuix.MiuiPreferenceCategory android:title="其他">
+        <com.hchen.himiuix.MiuiPreference
+            android:summary="项目遵循 GPL-3.0 协议开源"
+            android:title="项目地址">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/HChenX/ForegroundPin" />
+        </com.hchen.himiuix.MiuiPreference>
+
+        <com.hchen.himiuix.MiuiPreference
+            android:key="open_source"
+            android:title="开源项目引用" />
+
+        <com.hchen.himiuix.MiuiPreference
+            android:key="thanks"
+            android:title="特别鸣谢" />
+
+    </com.hchen.himiuix.MiuiPreferenceCategory>
+
+</androidx.preference.PreferenceScreen>
