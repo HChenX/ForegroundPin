@@ -30,6 +30,21 @@
             android:key="hangup_switch"
             android:summary="是否启用息屏听剧功能"
             android:title="息屏听剧" />
+
+        <com.hchen.himiuix.MiuiSwitchPreference
+            android:defaultValue="false"
+            android:dependency="foreground_pin_main_switch"
+            android:key="hangup_api_switch"
+            android:summary="是否启用息屏听剧 Api"
+            android:title="息屏听剧 Api" />
+
+        <com.hchen.himiuix.MiuiPreference
+            android:defaultValue="true"
+            android:dependency="hangup_api_switch"
+            android:key="hangup_api_help"
+            android:summary="息屏听剧 Api 使用方法"
+            android:title="息屏听剧 Api 帮助" />
+
     </com.hchen.himiuix.MiuiPreferenceCategory>
 
     <com.hchen.himiuix.MiuiPreferenceCategory android:title="开发人员">

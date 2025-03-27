@@ -66,6 +66,11 @@ import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+/**
+ * Home
+ *
+ * @author 焕晨HChen
+ */
 public class HomeFragment extends Fragment {
     MiuiEditText mMiuiEditText;
     EditText mEditText;

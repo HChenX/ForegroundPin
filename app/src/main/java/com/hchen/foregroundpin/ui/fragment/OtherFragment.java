@@ -44,6 +44,11 @@ import com.hchen.himiuix.MiuiAlertDialog;
 import com.hchen.himiuix.MiuiPreference;
 import com.hchen.himiuix.MiuiXUtils;
 
+/**
+ * Other
+ *
+ * @author 焕晨HChen
+ */
 public class OtherFragment extends PreferenceFragmentCompat {
     @Override
     public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
@@ -73,6 +78,21 @@ public class OtherFragment extends PreferenceFragmentCompat {
 
         info.setTitle(deviceName);
         info.setSummary("设备型号: " + marketName + "\n安卓版本: Android " + androidVersion + "\n系统版本: " + osVersion);
+
+        MiuiPreference hangupApi = findPreference("hangup_api_help");
+        hangupApi.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(@NonNull Preference preference) {
+                new MiuiAlertDialog(getContext())
+                    .setTitle("使用方法")
+                    .setHapticFeedbackEnabled(true)
+                    .setCanceledOnTouchOutside(false)
+                    .setMessage("settings put global hangup_api \"包名\"")
+                    .setPositiveButton("知道了", null)
+                    .show();
+                return true;
+            }
+        });
 
         MiuiPreference contributor = findPreference("contributor");
         contributor.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {

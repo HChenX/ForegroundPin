@@ -35,6 +35,11 @@ import com.hchen.hooktool.BaseHC;
 import com.hchen.hooktool.hook.IHook;
 import com.hchen.hooktool.tool.additional.DeviceTool;
 
+/**
+ * Miui 息屏听剧
+ *
+ * @author 焕晨HChen
+ */
 public class MiuiHangup extends BaseHC {
     private static boolean isCancel = false;
     private static final HangupHandler mHangupHandler = new HangupHandler(Looper.getMainLooper());

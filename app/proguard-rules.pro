@@ -20,14 +20,24 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class com.hchen.foregroundpin.HookMain
--keep class com.hchen.foregroundpin.hook.ForegroundPin
--keep class com.hchen.foregroundpin.hook.HyperHangup
+-keep class * extends com.hchen.hooktool.BaseHC
+-keep class * extends com.hchen.hooktool.HCEntrance
+-keep class com.hchen.foregroundpin.hook.**
+-keep class com.hchen.foregroundpin.hook.**$*
 
--keep class com.kongzue.dialogx.** { *; }
--dontwarn com.kongzue.dialogx.**
+-keep class  com.hchen.hooktool.HCState {
+        static boolean isEnabled;
+        static java.lang.String mFramework;
+        static int  mVersion;
+ }
+-keep class * implements android.os.Parcelable {
+        public static ** CREATOR;
+}
+
+#-keep class com.kongzue.dialogx.** { *; }
+#-dontwarn com.kongzue.dialogx.**
 # 额外的，建议将 android.view 也列入 keep 范围：
--keep class android.view.** { *; }
+#-keep class android.view.** { *; }
 # 若启用模糊效果，请增加如下配置：
--dontwarn androidx.renderscript.**
--keep public class androidx.renderscript.** { *; }
+#-dontwarn androidx.renderscript.**
+#-keep public class androidx.renderscript.** { *; }

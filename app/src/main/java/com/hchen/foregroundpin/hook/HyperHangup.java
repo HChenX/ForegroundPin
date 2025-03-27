@@ -29,6 +29,11 @@ import com.hchen.hooktool.BaseHC;
 import com.hchen.hooktool.hook.IHook;
 import com.hchen.hooktool.tool.additional.DeviceTool;
 
+/**
+ * Hyper 息屏听剧
+ *
+ * @author 焕晨HChen
+ */
 public class HyperHangup extends BaseHC {
     private final HangupHandler mHangupHandler = new HangupHandler(Looper.getMainLooper());
 
@@ -85,15 +90,15 @@ public class HyperHangup extends BaseHC {
                     if (ModuleData.shouldForegroundPin(packageName)) {
                         if (HangupHandler.mHangupSet.contains(packageName)) {
                             Parcel obtain = Parcel.obtain();
-                            Parcel obtain1 = Parcel.obtain();
                             obtain.writeInterfaceToken("android.app.IActivityManager");
                             obtain.writeString(packageName);
-                            Class<?> clz = findClass("android.os.MiuiBinderTransaction$IActivityManager", ClassLoader.getSystemClassLoader());
-                            Class<?> clz1 = findClass("android.app.ActivityManager", ClassLoader.getSystemClassLoader());
+
+                            Class<?> clz = findClass("android.os.MiuiBinderTransaction$IActivityManager");
+                            Class<?> clz1 = findClass("android.app.ActivityManager");
                             Object getService = callStaticMethod(clz1, "getService");
                             Object asBinder = callMethod(getService, "asBinder");
                             int TRANSACT_ID_SET_PACKAGE_HOLD_ON = (int) getStaticField(clz, "TRANSACT_ID_SET_PACKAGE_HOLD_ON");
-                            callMethod(asBinder, "transact", TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, obtain1, 0);
+                            callMethod(asBinder, "transact", TRANSACT_ID_SET_PACKAGE_HOLD_ON, obtain, Parcel.obtain(), 0);
                             HangupHandler.mHangupSet.remove(packageName);
                         }
                     }

@@ -30,6 +30,11 @@ import androidx.annotation.NonNull;
 
 import java.util.HashSet;
 
+/**
+ * 息屏听剧 Handler
+ *
+ * @author 焕晨HChen
+ */
 public class HangupHandler extends Handler {
     private static final String TAG = "mForegroundPin";
     public static final HashSet<String> mHangupSet = new HashSet<>();

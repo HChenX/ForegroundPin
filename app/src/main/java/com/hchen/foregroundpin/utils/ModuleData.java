@@ -22,11 +22,17 @@ import com.hchen.hooktool.tool.additional.PrefsTool;
 
 import java.util.HashSet;
 
+/**
+ * 模块数据
+ *
+ * @author 焕晨HChen
+ */
 public class ModuleData {
     private static final String KEY_FOREGROUND_PIN = "foreground_pin_app_list";
     private static final String KEY_MODULE_ENABLE = "foreground_pin_main_switch";
     private static final String KEY_FOREGROUND_PIN_ENABLE = "foreground_pin_switch";
     private static final String KEY_HANGUP_ENABLE = "hangup_switch";
+    private static final String KEY_HANGUP_API_ENABLE = "hangup_api_switch";
 
     public static boolean isModuleEnable() {
         return PrefsTool.prefs().getBoolean(KEY_MODULE_ENABLE, true);
@@ -38,6 +44,10 @@ public class ModuleData {
 
     public static boolean isHangupEnable() {
         return PrefsTool.prefs().getBoolean(KEY_HANGUP_ENABLE, true);
+    }
+
+    public static boolean isHangupApiEnable() {
+        return PrefsTool.prefs().getBoolean(KEY_HANGUP_API_ENABLE, true);
     }
 
     public static boolean shouldForegroundPin(String packageName) {

@@ -21,13 +21,20 @@ package com.hchen.foregroundpin;
 import static com.hchen.hooktool.HCInit.LOG_D;
 
 import com.hchen.foregroundpin.hook.ForegroundPin;
+import com.hchen.foregroundpin.hook.HangupApi;
 import com.hchen.foregroundpin.hook.HyperHangup;
 import com.hchen.foregroundpin.hook.MiuiHangup;
+import com.hchen.foregroundpin.utils.ModuleData;
 import com.hchen.hooktool.HCEntrance;
 import com.hchen.hooktool.HCInit;
 
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
+/**
+ * Hook 入口
+ *
+ * @author 焕晨HChen
+ */
 public class HookMain extends HCEntrance {
     public static String TAG = "mForegroundPin";
 
@@ -57,6 +64,9 @@ public class HookMain extends HCEntrance {
             }
             case "com.android.systemui" -> {
                 new HyperHangup().onLoadPackage();
+
+                if (ModuleData.isHangupApiEnable())
+                    new HangupApi().onApplicationCreate().onLoadPackage();
             }
         }
     }

@@ -3,6 +3,8 @@ plugins {
 }
 
 android {
+    def apk = "ForegroundPin"
+
     Properties properties = new Properties()
     InputStream inputStream = project.rootProject.file('local.properties').newDataInputStream()
     properties.load(inputStream)
@@ -29,8 +31,8 @@ android {
         minSdk 30
         targetSdk 35
         //noinspection HighAppVersionCode
-        versionCode 2024052605
-        versionName "3.1"
+        versionCode 2025032700
+        versionName "3.2"
 
         signingConfig signingConfigs.release
     }
@@ -64,6 +66,14 @@ android {
         }
     }
 
+    android {
+        applicationVariants.configureEach { variant ->
+            variant.outputs.configureEach { output ->
+                outputFileName = "${apk}-v${variant.versionName}(${variant.versionCode})_${variant.buildType.name}.apk"
+            }
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
@@ -84,7 +94,7 @@ dependencies {
     compileOnly 'de.robv.android.xposed:api:82'
 
     /*HookTool*/
-//    implementation 'com.github.HChenX:HookTool:v.1.2.6'
+    implementation 'com.github.HChenX:HookTool:v.1.2.7'
 
     /*安卓*/
     implementation 'androidx.appcompat:appcompat:1.7.0'

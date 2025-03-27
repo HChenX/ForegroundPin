@@ -51,6 +51,11 @@ import com.hchen.hooktool.tool.additional.ShellTool;
 import java.util.Arrays;
 import java.util.HashMap;
 
+/**
+ * 主界面
+ *
+ * @author 焕晨HChen
+ */
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "mForegroundPin";
     public static final HashMap<String, String> mRestartMap = new HashMap<>();

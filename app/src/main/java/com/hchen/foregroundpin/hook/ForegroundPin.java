@@ -31,6 +31,11 @@ import com.hchen.hooktool.BaseHC;
 import com.hchen.hooktool.hook.IHook;
 import com.hchen.hooktool.tool.additional.DeviceTool;
 
+/**
+ * 贴边小窗前台
+ *
+ * @author 焕晨HChen
+ */
 public class ForegroundPin extends BaseHC {
     private final HandlerHelper handlerHelper = new HandlerHelper(Looper.getMainLooper());
     private static final int TOP_WINDOW_HAS_DRAWN = 1;

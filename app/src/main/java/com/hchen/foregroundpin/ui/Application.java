@@ -22,6 +22,9 @@ import com.hchen.foregroundpin.BuildConfig;
 import com.hchen.hooktool.HCInit;
 import com.hchen.hooktool.tool.additional.PrefsTool;
 
+/**
+ * @author 焕晨HChen
+ */
 public class Application extends android.app.Application {
     private static final String TAG = "mForegroundPin";
 
