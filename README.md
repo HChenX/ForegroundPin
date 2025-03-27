@@ -46,14 +46,14 @@
 |:--------:|:----------------------------------------------:|
 | HookTool | [HookTool](https://github.com/HChenX/HookTool) |
 | LSPosed  | [LSPosed](https://github.com/LSPosed/LSPosed)  |
-| DialogX  | [DialogX](https://github.com/kongzue/DialogX)  |
+| HiMiuiX  |  [HiMiuiX](https://github.com/HChenX/HiMiuiX)  |
 |   翻译提供   |                      提供者                       |
 |   简体中文   |                    焕晨HChen                     |
 
 # 📢项目声明
 
-- HyperOS: Hook方法来源: @柚稚的孩纸([@zjw2017](https://github.com/zjw2017)) & yife & pedroz
-- Miui: Hook方法来源: @焕晨HChen([@HChenX](https://github.com/HChenX))
+- HyperOS: Hook方法来源: 柚稚的孩纸([@zjw2017](https://github.com/zjw2017)) & yife & pedroz
+- Miui: Hook方法来源: 焕晨HChen([@HChenX](https://github.com/HChenX))
 
 - 项目将保持开源！欢迎互相学习！欢迎PR！
 - 对本项目的使用需要注明，请遵守开源协议！
