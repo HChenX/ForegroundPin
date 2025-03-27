@@ -22,6 +22,7 @@ import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static com.hchen.hooktool.tool.additional.SystemPropTool.getProp;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -116,31 +117,27 @@ public class OtherFragment extends PreferenceFragmentCompat {
                             public void onBindView(ViewGroup root, View view) {
                                 CardInfo.builder(view.findViewById(R.id.miuix))
                                     .setTitle("HiMiuiX")
-                                    .setSummary("仿 MiuiX 的 Xml 式布局！")
+                                    .setSummary("仿 MiuiX 的 Xml 式布局！| GPL-3.0")
                                     .setArrowRight()
-                                    .setClickListen(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            Intent intent = new Intent();
-                                            intent.setAction("android.intent.action.VIEW");
-                                            intent.setData(Uri.parse("https://github.com/HChenX/HiMiuiX"));
-                                            startActivity(intent);
-                                        }
-                                    });
+                                    .setOpenUri(getContext(), "https://github.com/HChenX/HiMiuiX");
 
                                 CardInfo.builder(view.findViewById(R.id.hooktool))
                                     .setTitle("HookTool")
-                                    .setSummary("使用 Java 编写的 Hook 工具！帮助你减轻编写 Hook 代码的复杂度！")
+                                    .setSummary("使用 Java 编写的 Hook 工具！帮助你减轻编写 Hook 代码的复杂度！| GPL-3.0")
                                     .setArrowRight()
-                                    .setClickListen(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            Intent intent = new Intent();
-                                            intent.setAction("android.intent.action.VIEW");
-                                            intent.setData(Uri.parse("https://github.com/HChenX/HookTool"));
-                                            startActivity(intent);
-                                        }
-                                    });
+                                    .setOpenUri(getContext(), "https://github.com/HChenX/HookTool");
+
+                                CardInfo.builder(view.findViewById(R.id.android))
+                                    .setTitle("Android")
+                                    .setSummary("Android Open Source Project, Google Inc. | Apache-2.0")
+                                    .setArrowRight()
+                                    .setOpenUri(getContext(), "https://source.android.google.cn/license");
+
+                                CardInfo.builder(view.findViewById(R.id.androidx))
+                                    .setTitle("AndroidX")
+                                    .setSummary("Android Open Source Project, Google Inc., androidx | Apache-2.0")
+                                    .setArrowRight()
+                                    .setOpenUri(getContext(), "https://github.com/androidx/androidx");
                             }
                         })
                     .setHapticFeedbackEnabled(true)
@@ -175,15 +172,7 @@ public class OtherFragment extends PreferenceFragmentCompat {
                                             )
                                         )
                                     )
-                                    .setClickListen(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            Intent intent = new Intent();
-                                            intent.setAction("android.intent.action.VIEW");
-                                            intent.setData(Uri.parse("https://github.com/zjw2017"));
-                                            startActivity(intent);
-                                        }
-                                    });
+                                    .setOpenUri(getContext(), "https://github.com/zjw2017");
 
                                 CardInfo.builder(view.findViewById(R.id.yife))
                                     .setTitle("YifePlayte")
@@ -198,15 +187,7 @@ public class OtherFragment extends PreferenceFragmentCompat {
                                             )
                                         )
                                     )
-                                    .setClickListen(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            Intent intent = new Intent();
-                                            intent.setAction("android.intent.action.VIEW");
-                                            intent.setData(Uri.parse("https://github.com/YifePlayte"));
-                                            startActivity(intent);
-                                        }
-                                    });
+                                    .setOpenUri(getContext(), "https://github.com/YifePlayte");
                             }
                         })
                     .setHapticFeedbackEnabled(true)
@@ -288,6 +269,19 @@ public class OtherFragment extends PreferenceFragmentCompat {
 
         public CardInfo setClickListen(View.OnClickListener listener) {
             mView.setOnClickListener(listener);
+            return this;
+        }
+
+        public CardInfo setOpenUri(Context context, String uri) {
+            mView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent();
+                    intent.setAction("android.intent.action.VIEW");
+                    intent.setData(Uri.parse(uri));
+                    context.startActivity(intent);
+                }
+            });
             return this;
         }
     }

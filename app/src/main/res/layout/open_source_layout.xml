@@ -12,4 +12,12 @@
     <include
         android:id="@+id/hooktool"
         layout="@layout/miuix_preference" />
+
+    <include
+        android:id="@+id/android"
+        layout="@layout/miuix_preference" />
+
+    <include
+        android:id="@+id/androidx"
+        layout="@layout/miuix_preference" />
 </LinearLayout>
