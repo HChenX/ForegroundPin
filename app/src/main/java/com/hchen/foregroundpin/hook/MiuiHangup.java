@@ -37,7 +37,7 @@ import com.hchen.hooktool.tool.additional.DeviceTool;
 
 public class MiuiHangup extends BaseHC {
     private static boolean isCancel = false;
-    private static HangupHandler mHangupHandler = new HangupHandler(Looper.getMainLooper());
+    private static final HangupHandler mHangupHandler = new HangupHandler(Looper.getMainLooper());
 
     @Override
     protected void init() {
@@ -49,6 +49,8 @@ public class MiuiHangup extends BaseHC {
             new IHook() {
                 @Override
                 public void after() {
+                    if (!ModuleData.isModuleEnable() || !ModuleData.isHangupEnable()) return;
+
                     String packageName = getPackageName(getArgs(1));
                     Object mActivityTaskManagerService = getThisField("mActivityTaskManagerService");
                     Context mContext = (Context) getField(mActivityTaskManagerService, "mContext");
@@ -81,6 +83,7 @@ public class MiuiHangup extends BaseHC {
             new IHook() {
                 @Override
                 public void after() {
+                    if (!ModuleData.isModuleEnable() || !ModuleData.isHangupEnable()) return;
                     if (isCancel) return;
 
                     String packageName = getPackageName(getArgs(1));
@@ -101,6 +104,8 @@ public class MiuiHangup extends BaseHC {
             new IHook() {
                 @Override
                 public void before() {
+                    if (!ModuleData.isModuleEnable() || !ModuleData.isHangupEnable()) return;
+
                     String packageName = getPackageName(getArgs(0));
                     if (ModuleData.shouldForegroundPin(packageName)) {
                         if (HangupHandler.mHangupSet.contains(packageName)) {

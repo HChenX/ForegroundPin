@@ -44,6 +44,9 @@ public class ForegroundPin extends BaseHC {
                 new IHook() {
                     @Override
                     public void after() {
+                        if (!ModuleData.isModuleEnable() || !ModuleData.isForegroundPinEnable())
+                            return;
+
                         String packageName = getPackageName(getArgs(0));
                         if (ModuleData.shouldForegroundPin(packageName)) {
                             setResult(true);
@@ -63,6 +66,9 @@ public class ForegroundPin extends BaseHC {
                 new IHook() {
                     @Override
                     public void before() {
+                        if (!ModuleData.isModuleEnable() || !ModuleData.isForegroundPinEnable())
+                            return;
+
                         handlerHelper.sendMessageDelayed(
                             handlerHelper.obtainMessage(
                                 TOP_WINDOW_HAS_DRAWN,
@@ -80,6 +86,9 @@ public class ForegroundPin extends BaseHC {
                         new IHook() {
                             @Override
                             public void before() {
+                                if (!ModuleData.isModuleEnable() || !ModuleData.isForegroundPinEnable())
+                                    return;
+
                                 if (ModuleData.shouldForegroundPin(getPackageName(getArgs(0)))) {
                                     setResult(null);
                                 }
@@ -91,6 +100,9 @@ public class ForegroundPin extends BaseHC {
                     .hook(new IHook() {
                         @Override
                         public void before() {
+                            if (!ModuleData.isModuleEnable() || !ModuleData.isForegroundPinEnable())
+                                return;
+
                             if (ModuleData.shouldForegroundPin(getPackageName(getArgs(0)))) {
                                 setResult(null);
                             }
@@ -102,6 +114,9 @@ public class ForegroundPin extends BaseHC {
                     .hook(new IHook() {
                         @Override
                         public void before() {
+                            if (!ModuleData.isModuleEnable() || !ModuleData.isForegroundPinEnable())
+                                return;
+
                             handlerHelper.sendMessageDelayed(
                                 handlerHelper.obtainMessage(
                                     TOP_WINDOW_HAS_DRAWN,
@@ -127,6 +142,9 @@ public class ForegroundPin extends BaseHC {
                     .hook(new IHook() {
                         @Override
                         public void after() {
+                            if (!ModuleData.isModuleEnable() || !ModuleData.isForegroundPinEnable())
+                                return;
+
                             String packageName = (String) callThisMethod("getPackageName");
                             if (!ModuleData.shouldForegroundPin(packageName))
                                 return;

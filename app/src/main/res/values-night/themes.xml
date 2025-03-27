@@ -2,8 +2,8 @@
     <!-- Base application theme. -->
     <style name="Theme.ForegroundPin" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:colorBackground">#000000</item>
+        <item name="android:colorControlHighlight">@android:color/transparent</item>
 
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>

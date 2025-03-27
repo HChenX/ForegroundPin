@@ -34,16 +34,22 @@ public class HookMain extends HCEntrance {
     @Override
     public HCInit.BasicData initHC(HCInit.BasicData basicData) {
         return basicData.setModulePackageName(BuildConfig.APPLICATION_ID)
-            .setTag("ForegroundPin")
-            .setPrefsName("ForegroundPin")
+            .setTag(TAG)
             .setLogLevel(LOG_D)
+            .setPrefsName("ForegroundPin")
             .initLogExpand(new String[]{
                 "com.hchen.foregroundpin.hook"
             });
     }
 
     @Override
+    public String[] ignorePackageNameList() {
+        return new String[]{"com.miui.contentcatcher", "com.android.providers.settings", "com.android.server.telecom"};
+    }
+
+    @Override
     public void onLoadPackage(LoadPackageParam lpparam) throws Throwable {
+        HCInit.initLoadPackageParam(lpparam);
         switch (lpparam.packageName) {
             case "android" -> {
                 new ForegroundPin().onLoadPackage();

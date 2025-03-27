@@ -22,7 +22,6 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Looper;
 import android.os.Parcel;
-import android.util.SparseArray;
 
 import com.hchen.foregroundpin.utils.HangupHandler;
 import com.hchen.foregroundpin.utils.ModuleData;
@@ -37,47 +36,52 @@ public class HyperHangup extends BaseHC {
     public void init() {
         if (!DeviceTool.isMoreHyperOSVersion(1f)) return; // 不是 Hyper 跳过
 
-        hookMethod("com.android.wm.shell.miuimultiwinswitch.MiuiMultiWinTrackUtils",
+        hookMethod(DeviceTool.isMoreHyperOSVersion(2f) ? "com.miui.analytics.MiuiMultiWinTrackUtils" : "com.android.wm.shell.miuimultiwinswitch.MiuiMultiWinTrackUtils",
             "trackWindowControlButtonClick",
             Context.class, ActivityManager.RunningTaskInfo.class, String.class, String.class,
             new IHook() {
                 @Override
                 public void before() {
+                    if (!ModuleData.isModuleEnable() || !ModuleData.isHangupEnable()) return;
+
                     String str = (String) getArgs(2);
                     String str1 = (String) getArgs(3);
-
                     if ("小窗".equals(str) && "小窗".equals(str1)) {
                         Context context = (Context) getArgs(0);
-                        Object MiuiWindowDecorViewModel = getThisField("this$0");
-                        int mTaskId = (int) getThisField("mTaskId");
-                        SparseArray<?> mWindowDecorByTaskId = (SparseArray<?>) getField(MiuiWindowDecorViewModel, "mWindowDecorByTaskId");
-                        Object miuiWindowDecoration = mWindowDecorByTaskId.get(mTaskId);
-                        ActivityManager.RunningTaskInfo runningTaskInfo = (ActivityManager.RunningTaskInfo) getField(miuiWindowDecoration, "mTaskInfo");
-                        Object mTaskInfo = getField(miuiWindowDecoration, "mTaskInfo");
-                        int mode = (int) callMethod(mTaskInfo, "getWindowingMode");
+                        ActivityManager.RunningTaskInfo runningTaskInfo = (ActivityManager.RunningTaskInfo) getArgs(1);
+                        if (context == null || runningTaskInfo == null) return;
 
-                        if (mode == 5) {
-                            String packageName = runningTaskInfo.baseActivity.getPackageName();
-                            if (ModuleData.shouldForegroundPin(packageName)) {
-                                removeHandler();
-                                if (!HangupHandler.mHangupSet.contains(packageName))
-                                    mHangupHandler.handleMessage(mHangupHandler.obtainMessage(HangupHandler.HANGUP_READY, new Object[]{context, packageName}));
-                            }
+                        String packageName = (String) callStaticMethod(
+                            DeviceTool.isMoreHyperOSVersion(2f) ?
+                                "com.android.wm.shell.multitasking.utils.MultiTaskingPackageUtils" : "com.android.wm.shell.miuimultiwinswitch.MiuiMultiWinUtils",
+                            DeviceTool.isMoreHyperOSVersion(2f) ?
+                                "getRunningTaskPackageName" : "getPackageName",
+                            runningTaskInfo);
+
+                        if (ModuleData.shouldForegroundPin(packageName)) {
+                            removeHandler();
+                            if (!HangupHandler.mHangupSet.contains(packageName))
+                                mHangupHandler.handleMessage(mHangupHandler.obtainMessage(HangupHandler.HANGUP_READY, new Object[]{context, packageName}));
                         }
                     }
                 }
             }
         );
 
-        hookMethod("com.android.wm.shell.miuifreeform.MiuiFreeformModePinHandler",
+        hookMethod(DeviceTool.isMoreHyperOSVersion(2f) ?
+                "com.android.wm.shell.multitasking.miuifreeform.MiuiFreeformModePinHandler" : "com.android.wm.shell.miuifreeform.MiuiFreeformModePinHandler",
             "hideTask",
-            "com.android.wm.shell.miuifreeform.MiuiFreeformModeTaskInfo",
+            DeviceTool.isMoreHyperOSVersion(2f) ?
+                "com.android.wm.shell.multitasking.taskmanager.MiuiFreeformModeTaskInfo" : "com.android.wm.shell.miuifreeform.MiuiFreeformModeTaskInfo",
             new IHook() {
                 @Override
                 public void after() {
+                    if (!ModuleData.isModuleEnable() || !ModuleData.isHangupEnable()) return;
+
                     Object miuiFreeformModeTaskInfo = getArgs(0);
                     String packageName = (String) callMethod(miuiFreeformModeTaskInfo, "getPackageName");
-                    if (packageName == null) return;
+                    if (packageName == null || packageName.isEmpty()) return;
+
                     if (ModuleData.shouldForegroundPin(packageName)) {
                         if (HangupHandler.mHangupSet.contains(packageName)) {
                             Parcel obtain = Parcel.obtain();

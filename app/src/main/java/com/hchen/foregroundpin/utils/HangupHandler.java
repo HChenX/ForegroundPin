@@ -31,6 +31,7 @@ import androidx.annotation.NonNull;
 import java.util.HashSet;
 
 public class HangupHandler extends Handler {
+    private static final String TAG = "mForegroundPin";
     public static final HashSet<String> mHangupSet = new HashSet<>();
     public static final int HANGUP_CANCELED = 0;
     public static final int HANGUP_READY = 1;
@@ -49,8 +50,8 @@ public class HangupHandler extends Handler {
                     return;
                 }
                 mHangupSet.add((String) objects[1]);
-                logI("HangupHelper", "Successfully entered the screen-off mode: " + msg.obj);
-                Toast.makeText((Context) objects[0], "成功进入息屏模式", Toast.LENGTH_SHORT).show();
+                logI(TAG, "Successfully entered the screen-off mode: " + msg.obj);
+                Toast.makeText((Context) objects[0], "息屏模式已准备", Toast.LENGTH_SHORT).show();
             }
             case HANGUP_CANCELED -> {
                 Toast.makeText((Context) msg.obj, "请勿移动手指", Toast.LENGTH_SHORT).show();

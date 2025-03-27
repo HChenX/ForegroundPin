@@ -21,6 +21,7 @@ package com.hchen.foregroundpin.ui;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.widget.RadioGroup;
 
@@ -41,9 +42,18 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.hchen.foregroundpin.R;
 import com.hchen.foregroundpin.ui.fragment.HomeFragment;
 import com.hchen.foregroundpin.ui.fragment.OtherFragment;
+import com.hchen.himiuix.DialogInterface;
+import com.hchen.himiuix.MiuiAlertDialog;
+import com.hchen.hooktool.HCState;
+import com.hchen.hooktool.log.AndroidLog;
+import com.hchen.hooktool.tool.additional.ShellTool;
+
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "mForegroundPin";
+    public static final HashMap<String, String> mRestartMap = new HashMap<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), new OnApplyWindowInsetsListener() {
             @NonNull
             @Override
@@ -90,23 +101,78 @@ public class MainActivity extends AppCompatActivity {
         });
 
         initMenu();
+
+        if (!HCState.isEnabled()) {
+            new MiuiAlertDialog(this)
+                .setTitle("提示")
+                .setMessage("请启用模块后使用！")
+                .setPositiveButton("知道了", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        MainActivity.this.finish();
+                    }
+                })
+                .setHapticFeedbackEnabled(true)
+                .setCanceledOnTouchOutside(false)
+                .setCancelable(false)
+                .show();
+        }
     }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        // appPicker.search(this, keyword);
     }
 
     private void initMenu() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         int mode = this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
         if (mode == Configuration.UI_MODE_NIGHT_YES) {
-            toolbar.inflateMenu(R.menu.main_night);
+            toolbar.inflateMenu(R.menu.action_night);
         } else {
-            toolbar.inflateMenu(R.menu.main);
+            toolbar.inflateMenu(R.menu.action);
         }
+
+        mRestartMap.put("重启系统", "android");
+        mRestartMap.put("重启系统界面", "com.android.systemui");
         toolbar.setOnMenuItemClickListener(item -> {
+            toolbar.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
+            if (item.getItemId() == R.id.action_restart) {
+                new MiuiAlertDialog(this)
+                    .setTitle("重新启动")
+                    .setMessage("请选择需要重新启动的作用域")
+                    .setHapticFeedbackEnabled(true)
+                    .setEnableListSelectView(true)
+                    .setUseCheckBoxButtonStyle(true)
+                    .setEnableListSpringBack(true)
+                    .setItems(new CharSequence[]{"重启系统", "重启系统界面"}, new DialogInterface.OnItemsClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, CharSequence item, int which) {
+                            AndroidLog.logI(TAG, "item: " + item + ", which: " + which);
+                        }
+
+                        @Override
+                        public void onResult(DialogInterface dialog, CharSequence[] items, CharSequence[] selectedItems) {
+                            AndroidLog.logI(TAG, "items: " + Arrays.toString(items) + ", selectedItems: " + Arrays.toString(selectedItems));
+
+                            if (selectedItems.length == 0) return;
+                            if (selectedItems.length > 1) return;
+                            String item = (String) selectedItems[0];
+                            String action = mRestartMap.get(item);
+                            if (action == null) return;
+
+                            ShellTool.isRootAvailable();
+                            ShellTool.builder().isRoot(true).create().cmd(action.equals("android") ? "reboot" : "killall " + action).exec();
+                            ShellTool.obtain().close();
+
+                            dialog.dismiss();
+                        }
+                    })
+                    .setPositiveButton("重启", null)
+                    .setNegativeButton("取消", null)
+                    .setCanceledOnTouchOutside(false)
+                    .show();
+            }
             return true;
         });
     }

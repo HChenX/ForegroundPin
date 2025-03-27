@@ -2,8 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_search"
-        android:icon="@drawable/ic_setting_night"
+        android:id="@+id/action_restart"
+        android:background="@android:color/transparent"
+        android:icon="@drawable/ic_restart_night"
         android:title=""
         app:showAsAction="ifRoom" />
 </menu>

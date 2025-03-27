@@ -24,8 +24,24 @@ import java.util.HashSet;
 
 public class ModuleData {
     private static final String KEY_FOREGROUND_PIN = "foreground_pin_app_list";
+    private static final String KEY_MODULE_ENABLE = "foreground_pin_main_switch";
+    private static final String KEY_FOREGROUND_PIN_ENABLE = "foreground_pin_switch";
+    private static final String KEY_HANGUP_ENABLE = "hangup_switch";
+
+    public static boolean isModuleEnable() {
+        return PrefsTool.prefs().getBoolean(KEY_MODULE_ENABLE, true);
+    }
+
+    public static boolean isForegroundPinEnable() {
+        return PrefsTool.prefs().getBoolean(KEY_FOREGROUND_PIN_ENABLE, true);
+    }
+
+    public static boolean isHangupEnable() {
+        return PrefsTool.prefs().getBoolean(KEY_HANGUP_ENABLE, true);
+    }
 
     public static boolean shouldForegroundPin(String packageName) {
+        if (packageName == null || packageName.isEmpty()) return false;
         return getForegroundPinAppSet().contains(packageName);
     }
 
